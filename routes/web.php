@@ -79,6 +79,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('income-statement', [ReportController::class, 'incomeStatement'])->name('income-statement');
         Route::get('general-ledger',   [ReportController::class, 'generalLedger'])->name('general-ledger');
         Route::get('cash-flow',        [ReportController::class, 'cashFlow'])->name('cash-flow');
+        Route::get('environmental',    [ReportController::class, 'environmental'])->name('environmental');
     });
 });
 

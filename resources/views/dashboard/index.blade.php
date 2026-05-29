@@ -54,6 +54,33 @@
     </div>
 </div>
 
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted small">Emisi Karbon YTD</span>
+                    <span class="badge bg-danger-subtle text-danger rounded-pill"><i class="bi bi-cloud-haze2"></i></span>
+                </div>
+                <div class="fs-4 fw-bold text-danger">{{ number_format($totalCarbonYtd, 2, ',', '.') }} kg CO₂e</div>
+                <small class="text-muted"><a href="{{ route('reports.environmental') }}" class="text-muted">Lihat laporan lingkungan</a></small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted small">Limbah YTD</span>
+                    <span class="badge bg-warning-subtle text-warning rounded-pill"><i class="bi bi-trash3"></i></span>
+                </div>
+                <div class="fs-4 fw-bold text-warning">{{ number_format($totalWasteYtd, 2, ',', '.') }} kg</div>
+                <small class="text-muted"><a href="{{ route('reports.environmental') }}" class="text-muted">Lihat laporan lingkungan</a></small>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <span><i class="bi bi-clock-history me-2"></i>Jurnal Terbaru</span>

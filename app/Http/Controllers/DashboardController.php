@@ -45,8 +45,12 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
+        $totalCarbonYtd = DB::table('environmental_impacts')->whereYear('date', now()->year)->sum('carbon_kg') ?? 0;
+        $totalWasteYtd  = DB::table('environmental_impacts')->whereYear('date', now()->year)->sum('waste_kg')  ?? 0;
+
         return view('dashboard.index', compact(
-            'totalAr', 'totalAp', 'cashBalance', 'netIncome', 'recentJournals'
+            'totalAr', 'totalAp', 'cashBalance', 'netIncome', 'recentJournals',
+            'totalCarbonYtd', 'totalWasteYtd'
         ));
     }
 }

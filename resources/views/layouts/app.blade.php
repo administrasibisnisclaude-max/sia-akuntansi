@@ -109,6 +109,9 @@
         <a href="{{ route('reports.cash-flow') }}" class="nav-link @active('reports.cash-flow')">
             <i class="bi bi-cash-stack me-2"></i>Arus Kas
         </a>
+        <a href="{{ route('reports.environmental') }}" class="nav-link @active('reports.environmental')">
+            <i class="bi bi-leaf me-2"></i>Laporan Lingkungan
+        </a>
     </nav>
 </div>
 
