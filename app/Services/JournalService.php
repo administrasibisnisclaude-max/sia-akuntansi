@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\{Journal, JournalLine, ArInvoice, ArPayment, ApBill, ApPayment};
+use App\Models\{Journal, JournalLine, ArInvoice, ArPayment, ApBill, ApPayment, SalesInvoice, SalesReceipt};
 use Illuminate\Support\Facades\DB;
 
 class JournalService
