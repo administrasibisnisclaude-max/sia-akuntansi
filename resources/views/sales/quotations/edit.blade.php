@@ -49,6 +49,16 @@
                     <tfoot>
                         <tr><td colspan="3" class="text-end fw-bold">Subtotal</td><td colspan="2" class="text-end" id="subTotal">Rp {{ number_format($quotation->subtotal,0,',','.') }}</td><td></td></tr>
                         <tr>
+                            <td colspan="3" class="text-end fw-semibold">Diskon (Rp)</td>
+                            <td colspan="2">
+                                <input type="number" name="discount_amount" id="discountAmount"
+                                       class="form-control form-control-sm text-end"
+                                       value="{{ old('discount_amount', $quotation->discount_amount ?? 0) }}"
+                                       min="0" step="100">
+                            </td>
+                            <td></td>
+                        </tr>
+                        <tr>
                             <td colspan="3" class="text-end fw-bold">PPN (11%)</td>
                             <td colspan="2">
                                 <div class="d-flex align-items-center gap-2">
@@ -98,13 +108,16 @@ function updateTotals() {
     let sub = 0;
     document.querySelectorAll('.line-subtotal').forEach(i => sub += parseFloat(i.value) || 0);
     document.getElementById('subTotal').textContent = 'Rp ' + sub.toLocaleString('id-ID');
+    const discount = parseFloat(document.getElementById('discountAmount')?.value) || 0;
+    const discounted = sub - discount;
     const hasTax = document.getElementById('taxCheck').checked;
-    const tax = hasTax ? sub * 0.11 : 0;
+    const tax = hasTax ? discounted * 0.11 : 0;
     document.getElementById('taxAmount').value = tax.toFixed(0);
-    document.getElementById('grandTotal').textContent = 'Rp ' + (sub + tax).toLocaleString('id-ID');
+    document.getElementById('grandTotal').textContent = 'Rp ' + (discounted + tax).toLocaleString('id-ID');
 }
 
 function toggleTax() { updateTotals(); }
+document.getElementById('discountAmount')?.addEventListener('input', updateTotals);
 
 function addLine() {
     const tbody = document.getElementById('linesBody');

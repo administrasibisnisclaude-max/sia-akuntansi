@@ -30,6 +30,7 @@ class QuotationController extends Controller
             'date'                => 'required|date',
             'valid_until'         => 'required|date|after_or_equal:date',
             'notes'               => 'nullable|string',
+            'discount_amount'     => 'nullable|numeric|min:0',
             'lines'               => 'required|array|min:1',
             'lines.*.description' => 'required|string',
             'lines.*.qty'         => 'required|numeric|min:0.01',
@@ -42,7 +43,8 @@ class QuotationController extends Controller
                 $subtotal += $line['qty'] * $line['unit_price'];
             }
 
-            $taxAmount = $subtotal * 0.11;
+            $discountAmount = min((float) $request->input('discount_amount', 0), $subtotal);
+            $taxAmount = (float) $request->input('tax_amount', 0);
 
             $quotation = Quotation::create([
                 'quotation_number' => NumberingService::generate('QT', 'quotations', 'quotation_number'),
@@ -51,8 +53,9 @@ class QuotationController extends Controller
                 'valid_until'      => $request->valid_until,
                 'status'           => 'draft',
                 'subtotal'         => $subtotal,
-                'tax_amount'       => $request->input('tax_amount', 0),
-                'total'            => $subtotal + $request->input('tax_amount', 0),
+                'discount_amount'  => $discountAmount,
+                'tax_amount'       => $taxAmount,
+                'total'            => ($subtotal - $discountAmount) + $taxAmount,
                 'notes'            => $request->notes,
                 'created_by'       => auth()->id(),
             ]);
@@ -96,6 +99,7 @@ class QuotationController extends Controller
             'date'                => 'required|date',
             'valid_until'         => 'required|date|after_or_equal:date',
             'notes'               => 'nullable|string',
+            'discount_amount'     => 'nullable|numeric|min:0',
             'lines'               => 'required|array|min:1',
             'lines.*.description' => 'required|string',
             'lines.*.qty'         => 'required|numeric|min:0.01',
@@ -108,16 +112,18 @@ class QuotationController extends Controller
                 $subtotal += $line['qty'] * $line['unit_price'];
             }
 
+            $discountAmount = min((float) $request->input('discount_amount', 0), $subtotal);
             $taxAmount = (float) $request->input('tax_amount', 0);
 
             $quotation->update([
-                'customer_id' => $request->customer_id,
-                'date'        => $request->date,
-                'valid_until' => $request->valid_until,
-                'subtotal'    => $subtotal,
-                'tax_amount'  => $taxAmount,
-                'total'       => $subtotal + $taxAmount,
-                'notes'       => $request->notes,
+                'customer_id'     => $request->customer_id,
+                'date'            => $request->date,
+                'valid_until'     => $request->valid_until,
+                'subtotal'        => $subtotal,
+                'discount_amount' => $discountAmount,
+                'tax_amount'      => $taxAmount,
+                'total'           => ($subtotal - $discountAmount) + $taxAmount,
+                'notes'           => $request->notes,
             ]);
 
             $quotation->lines()->delete();
@@ -166,9 +172,10 @@ class QuotationController extends Controller
                 'date'           => now()->toDateString(),
                 'due_date'       => now()->addDays(30)->toDateString(),
                 'status'         => 'draft',
-                'subtotal'       => $quotation->subtotal,
-                'tax_amount'     => $quotation->tax_amount,
-                'total'          => $quotation->total,
+                'subtotal'        => $quotation->subtotal,
+                'discount_amount' => $quotation->discount_amount,
+                'tax_amount'      => $quotation->tax_amount,
+                'total'           => $quotation->total,
                 'notes'          => $quotation->notes,
                 'created_by'     => auth()->id(),
             ]);
@@ -188,6 +195,13 @@ class QuotationController extends Controller
         });
 
         return redirect()->route('sales.invoices.show', $invoice)->with('success', 'Penawaran berhasil dikonversi menjadi faktur penjualan.');
+    }
+
+    public function printPdf(Quotation $quotation)
+    {
+        $quotation->load(['customer', 'lines.item']);
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('sales.quotations.pdf', compact('quotation'));
+        return $pdf->stream('penawaran-' . $quotation->quotation_number . '.pdf');
     }
 
     public function destroy(Quotation $quotation)

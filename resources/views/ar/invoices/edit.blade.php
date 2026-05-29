@@ -41,7 +41,20 @@
                     </tr>
                     @endforeach
                     </tbody>
-                    <tfoot><tr class="fw-bold"><td colspan="5" class="text-end">Total</td><td class="text-end" id="grandTotal">0</td><td></td></tr></tfoot>
+                    <tfoot>
+                        <tr><td colspan="5" class="text-end">Subtotal</td><td class="text-end" id="subTotal">0</td><td></td></tr>
+                        <tr>
+                            <td colspan="5" class="text-end fw-semibold">Diskon (Rp)</td>
+                            <td>
+                                <input type="number" name="discount_amount" id="discountAmount"
+                                       class="form-control form-control-sm text-end"
+                                       value="{{ old('discount_amount', $invoice->discount_amount ?? 0) }}"
+                                       min="0" step="100">
+                            </td>
+                            <td></td>
+                        </tr>
+                        <tr class="fw-bold"><td colspan="5" class="text-end">Total</td><td class="text-end" id="grandTotal">0</td><td></td></tr>
+                    </tfoot>
                 </table>
             </div>
             <div class="d-flex gap-2 mb-3">
@@ -65,7 +78,8 @@ const itemData = { @foreach($items as $item){{ $item->id }}: { price: {{ $item->
 const itemOptions = `@foreach($items as $item)<option value="{{ $item->id }}" data-price="{{ $item->sell_price }}">{{ $item->name }}</option>@endforeach`;
 let idx = {{ $invoice->lines->count() }};
 function calcRow(tr){const qty=parseFloat(tr.querySelector('.line-qty').value)||0;const price=parseFloat(tr.querySelector('.line-price').value)||0;tr.querySelector('.line-subtotal').value=(qty*price).toFixed(0);updateGrand();}
-function updateGrand(){let t=0;document.querySelectorAll('.line-subtotal').forEach(i=>t+=parseFloat(i.value)||0);document.getElementById('grandTotal').textContent='Rp '+t.toLocaleString('id-ID');}
+function updateGrand(){let sub=0;document.querySelectorAll('.line-subtotal').forEach(i=>sub+=parseFloat(i.value)||0);document.getElementById('subTotal').textContent='Rp '+sub.toLocaleString('id-ID');const discount=parseFloat(document.getElementById('discountAmount')?.value)||0;document.getElementById('grandTotal').textContent='Rp '+(sub-discount).toLocaleString('id-ID');}
+document.getElementById('discountAmount')?.addEventListener('input',updateGrand);
 function addLine(){const tbody=document.getElementById('linesBody');const tr=document.createElement('tr');tr.className='line-row';tr.innerHTML=`<td><select name="lines[${idx}][item_id]" class="form-select form-select-sm item-select"><option value="">—</option>${itemOptions}</select></td><td><input type="text" name="lines[${idx}][description]" class="form-control form-control-sm" required></td><td><input type="number" name="lines[${idx}][qty]" class="form-control form-control-sm text-end line-qty" value="1" min="0.01" step="0.01"></td><td><input type="number" name="lines[${idx}][unit_price]" class="form-control form-control-sm text-end line-price" value="0" min="0" step="1"></td><td><input type="number" name="lines[${idx}][tax_rate]" class="form-control form-control-sm text-end line-tax" value="0" min="0" max="100"></td><td><input type="number" name="lines[${idx}][subtotal_display]" class="form-control form-control-sm text-end line-subtotal" value="0" readonly></td><td><button type="button" class="btn btn-sm btn-outline-danger" onclick="removeLine(this)"><i class="bi bi-x"></i></button></td>`;tbody.appendChild(tr);attachRow(tr);idx++;}
 function removeLine(btn){if(document.querySelectorAll('#linesBody .line-row').length>1){btn.closest('tr').remove();updateGrand();}}
 function attachRow(tr){tr.querySelector('.item-select')?.addEventListener('change',function(){const id=this.value;if(id&&itemData[id]){tr.querySelector('.line-price').value=itemData[id].price;calcRow(tr);}});tr.querySelectorAll('.line-qty,.line-price').forEach(i=>i.addEventListener('input',()=>calcRow(tr)));}

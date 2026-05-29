@@ -34,6 +34,7 @@ class InvoiceController extends Controller
             'date'                 => 'required|date',
             'due_date'             => 'required|date|after_or_equal:date',
             'notes'                => 'nullable|string',
+            'discount_amount'      => 'nullable|numeric|min:0',
             'lines'                => 'required|array|min:1',
             'lines.*.description'  => 'required|string',
             'lines.*.qty'          => 'required|numeric|min:0.01',
@@ -51,17 +52,20 @@ class InvoiceController extends Controller
                 $taxAmount   += $lineSubtotal * ($line['tax_rate'] / 100);
             }
 
+            $discountAmount = min((float) $request->input('discount_amount', 0), $subtotal);
+
             $invoice = ArInvoice::create([
-                'invoice_number' => NumberingService::generate('INV', 'ar_invoices', 'invoice_number'),
-                'customer_id'    => $request->customer_id,
-                'date'           => $request->date,
-                'due_date'       => $request->due_date,
-                'status'         => 'draft',
-                'subtotal'       => $subtotal,
-                'tax_amount'     => $taxAmount,
-                'total'          => $subtotal + $taxAmount,
-                'notes'          => $request->notes,
-                'created_by'     => auth()->id(),
+                'invoice_number'  => NumberingService::generate('INV', 'ar_invoices', 'invoice_number'),
+                'customer_id'     => $request->customer_id,
+                'date'            => $request->date,
+                'due_date'        => $request->due_date,
+                'status'          => 'draft',
+                'subtotal'        => $subtotal,
+                'discount_amount' => $discountAmount,
+                'tax_amount'      => $taxAmount,
+                'total'           => $subtotal - $discountAmount + $taxAmount,
+                'notes'           => $request->notes,
+                'created_by'      => auth()->id(),
             ]);
 
             foreach ($request->lines as $line) {
@@ -110,6 +114,7 @@ class InvoiceController extends Controller
             'date'                 => 'required|date',
             'due_date'             => 'required|date|after_or_equal:date',
             'notes'                => 'nullable|string',
+            'discount_amount'      => 'nullable|numeric|min:0',
             'lines'                => 'required|array|min:1',
             'lines.*.description'  => 'required|string',
             'lines.*.qty'          => 'required|numeric|min:0.01',
@@ -127,14 +132,17 @@ class InvoiceController extends Controller
                 $taxAmount   += $lineSubtotal * ($line['tax_rate'] / 100);
             }
 
+            $discountAmount = min((float) $request->input('discount_amount', 0), $subtotal);
+
             $invoice->update([
-                'customer_id' => $request->customer_id,
-                'date'        => $request->date,
-                'due_date'    => $request->due_date,
-                'subtotal'    => $subtotal,
-                'tax_amount'  => $taxAmount,
-                'total'       => $subtotal + $taxAmount,
-                'notes'       => $request->notes,
+                'customer_id'     => $request->customer_id,
+                'date'            => $request->date,
+                'due_date'        => $request->due_date,
+                'subtotal'        => $subtotal,
+                'discount_amount' => $discountAmount,
+                'tax_amount'      => $taxAmount,
+                'total'           => $subtotal - $discountAmount + $taxAmount,
+                'notes'           => $request->notes,
             ]);
 
             $invoice->lines()->delete();
@@ -220,6 +228,13 @@ class InvoiceController extends Controller
         });
 
         return back()->with('success', 'Pembayaran berhasil dicatat.');
+    }
+
+    public function printPdf(ArInvoice $invoice)
+    {
+        $invoice->load(['customer', 'lines.item']);
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('ar.invoices.pdf', compact('invoice'));
+        return $pdf->stream('faktur-' . $invoice->invoice_number . '.pdf');
     }
 
     public function destroy(ArInvoice $invoice)

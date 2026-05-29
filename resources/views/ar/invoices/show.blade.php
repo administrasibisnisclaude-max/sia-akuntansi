@@ -31,6 +31,9 @@
                 </tbody>
                 <tfoot>
                     <tr><td colspan="5" class="text-end">Subtotal</td><td class="text-end">Rp {{ number_format($invoice->subtotal, 0, ',', '.') }}</td></tr>
+                    @if(($invoice->discount_amount ?? 0) > 0)
+                    <tr><td colspan="5" class="text-end">Diskon</td><td class="text-end text-danger">- Rp {{ number_format($invoice->discount_amount, 0, ',', '.') }}</td></tr>
+                    @endif
                     <tr><td colspan="5" class="text-end">PPN</td><td class="text-end">Rp {{ number_format($invoice->tax_amount, 0, ',', '.') }}</td></tr>
                     <tr class="fw-bold"><td colspan="5" class="text-end">Total</td><td class="text-end">Rp {{ number_format($invoice->total, 0, ',', '.') }}</td></tr>
                     <tr><td colspan="5" class="text-end">Terbayar</td><td class="text-end text-success">Rp {{ number_format($invoice->paidAmount(), 0, ',', '.') }}</td></tr>
@@ -49,6 +52,9 @@
         @if($invoice->status == 'draft')
             <a href="{{ route('ar.invoices.edit', $invoice) }}" class="btn btn-secondary btn-sm">Edit</a>
         @endif
+        <a href="{{ route('ar.invoices.pdf', $invoice) }}" target="_blank" class="btn btn-outline-danger btn-sm">
+            <i class="bi bi-file-earmark-pdf me-1"></i>Cetak PDF
+        </a>
         <button onclick="window.print()" class="btn btn-outline-secondary btn-sm"><i class="bi bi-printer"></i></button>
         <a href="{{ route('ar.invoices.index') }}" class="btn btn-outline-secondary btn-sm">Kembali</a>
     </div>

@@ -28,6 +28,9 @@
                 </tbody>
                 <tfoot>
                     <tr><td colspan="4" class="text-end">Subtotal</td><td class="text-end">Rp {{ number_format($quotation->subtotal, 0, ',', '.') }}</td></tr>
+                    @if(($quotation->discount_amount ?? 0) > 0)
+                    <tr><td colspan="4" class="text-end">Diskon</td><td class="text-end text-danger">- Rp {{ number_format($quotation->discount_amount, 0, ',', '.') }}</td></tr>
+                    @endif
                     <tr><td colspan="4" class="text-end">PPN</td><td class="text-end">Rp {{ number_format($quotation->tax_amount, 0, ',', '.') }}</td></tr>
                     <tr class="fw-bold"><td colspan="4" class="text-end">Total</td><td class="text-end">Rp {{ number_format($quotation->total, 0, ',', '.') }}</td></tr>
                 </tfoot>
@@ -64,6 +67,9 @@
                 @csrf<button class="btn btn-primary btn-sm"><i class="bi bi-arrow-right-circle me-1"></i>Buat Faktur</button>
             </form>
         @endif
+        <a href="{{ route('sales.quotations.pdf', $quotation) }}" target="_blank" class="btn btn-outline-danger btn-sm">
+            <i class="bi bi-file-earmark-pdf me-1"></i>Cetak PDF
+        </a>
         <button onclick="window.print()" class="btn btn-outline-secondary btn-sm"><i class="bi bi-printer"></i></button>
         <a href="{{ route('sales.quotations.index') }}" class="btn btn-outline-secondary btn-sm">Kembali</a>
     </div>

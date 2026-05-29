@@ -11,7 +11,7 @@ class Quotation extends Model
 
     protected $fillable = [
         'quotation_number', 'customer_id', 'date', 'valid_until', 'status',
-        'subtotal', 'tax_amount', 'total', 'notes', 'created_by',
+        'subtotal', 'discount_amount', 'tax_amount', 'total', 'notes', 'created_by',
     ];
     protected $casts = ['date' => 'date', 'valid_until' => 'date'];
 

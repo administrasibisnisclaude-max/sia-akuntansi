@@ -43,7 +43,20 @@
                         <td><button type="button" class="btn btn-sm btn-outline-danger" onclick="removeLine(this)"><i class="bi bi-x"></i></button></td>
                     </tr>
                     </tbody>
-                    <tfoot><tr class="fw-bold"><td colspan="5" class="text-end">Total</td><td class="text-end" id="grandTotal">0</td><td></td></tr></tfoot>
+                    <tfoot>
+                        <tr><td colspan="5" class="text-end">Subtotal</td><td class="text-end" id="subTotal">0</td><td></td></tr>
+                        <tr>
+                            <td colspan="5" class="text-end fw-semibold">Diskon (Rp)</td>
+                            <td>
+                                <input type="number" name="discount_amount" id="discountAmount"
+                                       class="form-control form-control-sm text-end"
+                                       value="{{ old('discount_amount', 0) }}"
+                                       min="0" step="100">
+                            </td>
+                            <td></td>
+                        </tr>
+                        <tr class="fw-bold"><td colspan="5" class="text-end">Total</td><td class="text-end" id="grandTotal">0</td><td></td></tr>
+                    </tfoot>
                 </table>
             </div>
             <div class="d-flex gap-2 mb-3">
@@ -80,10 +93,13 @@ function calcRow(tr) {
 }
 
 function updateGrand() {
-    let total = 0;
-    document.querySelectorAll('.line-subtotal').forEach(i => total += parseFloat(i.value) || 0);
-    document.getElementById('grandTotal').textContent = 'Rp ' + total.toLocaleString('id-ID');
+    let sub = 0;
+    document.querySelectorAll('.line-subtotal').forEach(i => sub += parseFloat(i.value) || 0);
+    document.getElementById('subTotal').textContent = 'Rp ' + sub.toLocaleString('id-ID');
+    const discount = parseFloat(document.getElementById('discountAmount')?.value) || 0;
+    document.getElementById('grandTotal').textContent = 'Rp ' + (sub - discount).toLocaleString('id-ID');
 }
+document.getElementById('discountAmount')?.addEventListener('input', updateGrand);
 
 function addLine() {
     const tbody = document.getElementById('linesBody');

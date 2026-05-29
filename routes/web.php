@@ -41,6 +41,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('invoices', ArInvoiceController::class);
         Route::post('invoices/{invoice}/post',    [ArInvoiceController::class, 'post'])->name('invoices.post');
         Route::post('invoices/{invoice}/payment', [ArInvoiceController::class, 'addPayment'])->name('invoices.payment');
+        Route::get('invoices/{invoice}/pdf',      [ArInvoiceController::class, 'printPdf'])->name('invoices.pdf');
     });
 
     // Utang (AP)
@@ -60,6 +61,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('invoices', SalesInvoiceController::class);
         Route::post('invoices/{invoice}/post',    [SalesInvoiceController::class, 'post'])->name('invoices.post');
         Route::post('invoices/{invoice}/payment', [SalesInvoiceController::class, 'addPayment'])->name('invoices.payment');
+        Route::get('invoices/{invoice}/pdf',      [SalesInvoiceController::class, 'printPdf'])->name('invoices.pdf');
+        Route::get('quotations/{quotation}/pdf',  [QuotationController::class, 'printPdf'])->name('quotations.pdf');
 
         Route::get('receipts',           [ReceiptController::class, 'index'])->name('receipts.index');
         Route::get('receipts/{receipt}', [ReceiptController::class, 'show'])->name('receipts.show');
