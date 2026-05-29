@@ -219,6 +219,124 @@ class JournalService
         });
     }
 
+    public static function createFromSalesInvoice(SalesInvoice $invoice, int $userId): Journal
+    {
+        return DB::transaction(function () use ($invoice, $userId) {
+            $journal = Journal::create([
+                'journal_number' => NumberingService::generate('JRN', 'journals', 'journal_number'),
+                'date'           => $invoice->date,
+                'description'    => "Faktur Penjualan {$invoice->invoice_number}",
+                'status'         => 'posted',
+                'reference'      => $invoice->invoice_number,
+                'reference_type' => 'sales_invoice',
+                'created_by'     => $userId,
+                'posted_by'      => $userId,
+                'posted_at'      => now(),
+            ]);
+
+            $customer    = $invoice->customer;
+            $arAccountId = $customer->ar_account_id ?? self::getDefaultAccount('1200');
+
+            JournalLine::create([
+                'journal_id'  => $journal->id,
+                'account_id'  => $arAccountId,
+                'description' => "Piutang - {$customer->name}",
+                'debit'       => $invoice->total,
+                'credit'      => 0,
+                'order'       => 1,
+            ]);
+
+            $order = 2;
+            foreach ($invoice->lines as $line) {
+                $salesAccountId = $line->item?->sales_account_id ?? self::getDefaultAccount('4100');
+                JournalLine::create([
+                    'journal_id'  => $journal->id,
+                    'account_id'  => $salesAccountId,
+                    'description' => $line->description,
+                    'debit'       => 0,
+                    'credit'      => $line->subtotal,
+                    'order'       => $order++,
+                ]);
+
+                if ($line->item && $line->item->type === 'product' && $line->item->cogs_account_id && $line->item->inventory_account_id) {
+                    $cogsAmount = $line->qty * $line->item->buy_price;
+                    if ($cogsAmount > 0) {
+                        JournalLine::create([
+                            'journal_id'  => $journal->id,
+                            'account_id'  => $line->item->cogs_account_id,
+                            'description' => "HPP - {$line->description}",
+                            'debit'       => $cogsAmount,
+                            'credit'      => 0,
+                            'order'       => $order++,
+                        ]);
+                        JournalLine::create([
+                            'journal_id'  => $journal->id,
+                            'account_id'  => $line->item->inventory_account_id,
+                            'description' => "Persediaan - {$line->description}",
+                            'debit'       => 0,
+                            'credit'      => $cogsAmount,
+                            'order'       => $order++,
+                        ]);
+                    }
+                }
+            }
+
+            if ($invoice->tax_amount > 0) {
+                $taxAccount = self::getDefaultAccount('2200');
+                JournalLine::create([
+                    'journal_id'  => $journal->id,
+                    'account_id'  => $taxAccount,
+                    'description' => 'PPN Keluaran',
+                    'debit'       => 0,
+                    'credit'      => $invoice->tax_amount,
+                    'order'       => $order,
+                ]);
+            }
+
+            return $journal;
+        });
+    }
+
+    public static function createFromSalesReceipt(SalesReceipt $receipt, int $userId): Journal
+    {
+        return DB::transaction(function () use ($receipt, $userId) {
+            $journal = Journal::create([
+                'journal_number' => NumberingService::generate('JRN', 'journals', 'journal_number'),
+                'date'           => $receipt->date,
+                'description'    => "Penerimaan {$receipt->receipt_number}",
+                'status'         => 'posted',
+                'reference'      => $receipt->receipt_number,
+                'reference_type' => 'sales_receipt',
+                'created_by'     => $userId,
+                'posted_by'      => $userId,
+                'posted_at'      => now(),
+            ]);
+
+            $cashAccountId = $receipt->paymentMethod->account_id ?? self::getDefaultAccount('1101');
+            $arAccountId   = $receipt->customer->ar_account_id ?? self::getDefaultAccount('1200');
+
+            JournalLine::create([
+                'journal_id'  => $journal->id,
+                'account_id'  => $cashAccountId,
+                'description' => "Penerimaan dari {$receipt->customer->name}",
+                'debit'       => $receipt->amount,
+                'credit'      => 0,
+                'order'       => 1,
+            ]);
+
+            JournalLine::create([
+                'journal_id'  => $journal->id,
+                'account_id'  => $arAccountId,
+                'description' => "Piutang - {$receipt->customer->name}",
+                'debit'       => 0,
+                'credit'      => $receipt->amount,
+                'order'       => 2,
+            ]);
+
+            return $journal;
+        });
+    }
+
     private static function getDefaultAccount(string $code): int
     {
         return \App\Models\Account::where('account_code', $code)->value('id') ?? 1;

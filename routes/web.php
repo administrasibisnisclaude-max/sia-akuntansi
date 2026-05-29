@@ -11,6 +11,9 @@ use App\Http\Controllers\{
     ReportController,
 };
 use App\Http\Controllers\AR\InvoiceController as ArInvoiceController;
+use App\Http\Controllers\Sales\QuotationController;
+use App\Http\Controllers\Sales\SalesInvoiceController;
+use App\Http\Controllers\Sales\ReceiptController;
 use App\Http\Controllers\AP\BillController as ApBillController;
 use App\Http\Controllers\Inventory\MovementController;
 use Illuminate\Support\Facades\Route;
@@ -45,6 +48,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('bills', ApBillController::class);
         Route::post('bills/{bill}/post',    [ApBillController::class, 'post'])->name('bills.post');
         Route::post('bills/{bill}/payment', [ApBillController::class, 'addPayment'])->name('bills.payment');
+    });
+
+    // Penjualan (Sales)
+    Route::prefix('sales')->name('sales.')->group(function () {
+        Route::resource('quotations', QuotationController::class);
+        Route::post('quotations/{quotation}/send',    [QuotationController::class, 'send'])->name('quotations.send');
+        Route::post('quotations/{quotation}/accept',  [QuotationController::class, 'accept'])->name('quotations.accept');
+        Route::post('quotations/{quotation}/convert', [QuotationController::class, 'convertToInvoice'])->name('quotations.convert');
+
+        Route::resource('invoices', SalesInvoiceController::class);
+        Route::post('invoices/{invoice}/post',    [SalesInvoiceController::class, 'post'])->name('invoices.post');
+        Route::post('invoices/{invoice}/payment', [SalesInvoiceController::class, 'addPayment'])->name('invoices.payment');
+
+        Route::get('receipts',           [ReceiptController::class, 'index'])->name('receipts.index');
+        Route::get('receipts/{receipt}', [ReceiptController::class, 'show'])->name('receipts.show');
     });
 
     // Inventori

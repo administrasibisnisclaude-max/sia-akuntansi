@@ -35,6 +35,8 @@
         .badge-paid     { background: #dcfce7; color: #15803d; }
         .badge-received { background: #e0f2fe; color: #0369a1; }
         .badge-cancelled{ background: #fee2e2; color: #b91c1c; }
+        .badge-accepted { background: #d1fae5; color: #065f46; }
+        .badge-expired  { background: #f3f4f6; color: #6b7280; }
         @media print { #sidebar, #topbar, .no-print { display: none !important; } #main { margin-left: 0 !important; } }
     </style>
     @stack('styles')
@@ -77,6 +79,15 @@
         </a>
         <a href="{{ route('ap.bills.index') }}" class="nav-link @active('ap.*')">
             <i class="bi bi-file-earmark-text me-2"></i>Utang (AP)
+        </a>
+        <a href="{{ route('sales.quotations.index') }}" class="nav-link @active('sales.quotations.*')">
+            <i class="bi bi-file-earmark-check me-2"></i>Penawaran Harga
+        </a>
+        <a href="{{ route('sales.invoices.index') }}" class="nav-link @active('sales.invoices.*')">
+            <i class="bi bi-receipt-cutoff me-2"></i>Faktur Penjualan
+        </a>
+        <a href="{{ route('sales.receipts.index') }}" class="nav-link @active('sales.receipts.*')">
+            <i class="bi bi-cash-coin me-2"></i>Bukti Penerimaan
         </a>
         <a href="{{ route('inventory.index') }}" class="nav-link @active('inventory.*')">
             <i class="bi bi-archive me-2"></i>Inventori
