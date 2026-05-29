@@ -9,35 +9,53 @@
     <style>
         :root { --sidebar-width: 260px; }
         body { font-size: 14px; background: #f8f9fa; }
+
         #sidebar {
             width: var(--sidebar-width);
-            min-height: 100vh;
+            height: 100vh;              /* fixed height agar scroll aktif */
             background: #1e293b;
             position: fixed;
             top: 0; left: 0;
             overflow-y: auto;
+            overflow-x: hidden;
             z-index: 1000;
             transition: .3s;
         }
+
+        /* custom scrollbar */
+        #sidebar::-webkit-scrollbar { width: 4px; }
+        #sidebar::-webkit-scrollbar-track { background: #1e293b; }
+        #sidebar::-webkit-scrollbar-thumb { background: #475569; border-radius: 2px; }
+        #sidebar::-webkit-scrollbar-thumb:hover { background: #64748b; }
+
+        #sidebar nav { padding-bottom: 2rem; } /* ruang di bawah item terakhir */
+
         #sidebar .brand { padding: 1rem 1.25rem; border-bottom: 1px solid #334155; }
         #sidebar .nav-link { color: #94a3b8; padding: .5rem 1.25rem; border-radius: 0; }
         #sidebar .nav-link:hover, #sidebar .nav-link.active { color: #fff; background: #334155; }
         #sidebar .nav-label { font-size: .7rem; font-weight: 600; text-transform: uppercase; color: #64748b; padding: .75rem 1.25rem .25rem; letter-spacing: .06em; }
+
         #main { margin-left: var(--sidebar-width); }
         #topbar { background: #fff; border-bottom: 1px solid #e2e8f0; }
+
         .card { border: 1px solid #e2e8f0; border-radius: .5rem; }
         .card-header { background: #fff; border-bottom: 1px solid #e2e8f0; font-weight: 600; }
         .table th { font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; color: #64748b; background: #f8fafc; }
-        .badge-draft    { background: #e2e8f0; color: #475569; }
-        .badge-posted   { background: #dcfce7; color: #16a34a; }
-        .badge-sent     { background: #dbeafe; color: #1d4ed8; }
-        .badge-partial  { background: #fef9c3; color: #92400e; }
-        .badge-paid     { background: #dcfce7; color: #15803d; }
-        .badge-received { background: #e0f2fe; color: #0369a1; }
-        .badge-cancelled{ background: #fee2e2; color: #b91c1c; }
-        .badge-accepted { background: #d1fae5; color: #065f46; }
-        .badge-expired  { background: #f3f4f6; color: #6b7280; }
-        @media print { #sidebar, #topbar, .no-print { display: none !important; } #main { margin-left: 0 !important; } }
+
+        .badge-draft     { background: #e2e8f0; color: #475569; }
+        .badge-posted    { background: #dcfce7; color: #16a34a; }
+        .badge-sent      { background: #dbeafe; color: #1d4ed8; }
+        .badge-partial   { background: #fef9c3; color: #92400e; }
+        .badge-paid      { background: #dcfce7; color: #15803d; }
+        .badge-received  { background: #e0f2fe; color: #0369a1; }
+        .badge-cancelled { background: #fee2e2; color: #b91c1c; }
+        .badge-accepted  { background: #d1fae5; color: #065f46; }
+        .badge-expired   { background: #f3f4f6; color: #6b7280; }
+
+        @media print {
+            #sidebar, #topbar, .no-print { display: none !important; }
+            #main { margin-left: 0 !important; }
+        }
     </style>
     @stack('styles')
 </head>
