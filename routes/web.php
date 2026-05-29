@@ -80,6 +80,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('general-ledger',   [ReportController::class, 'generalLedger'])->name('general-ledger');
         Route::get('cash-flow',        [ReportController::class, 'cashFlow'])->name('cash-flow');
         Route::get('environmental',    [ReportController::class, 'environmental'])->name('environmental');
+        Route::get('sold-products',          [ReportController::class, 'soldProducts'])->name('sold-products');
+        Route::get('stock-opname',           [ReportController::class, 'stockOpname'])->name('stock-opname');
+        Route::get('pajak',                  [ReportController::class, 'pajak'])->name('pajak');
+        Route::get('payment-methods-report', [ReportController::class, 'paymentMethodsReport'])->name('payment-methods-report');
+        Route::get('customer-spent',         [ReportController::class, 'customerSpent'])->name('customer-spent');
     });
 });
 

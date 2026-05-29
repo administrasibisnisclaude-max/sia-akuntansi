@@ -112,6 +112,21 @@
         <a href="{{ route('reports.environmental') }}" class="nav-link @active('reports.environmental')">
             <i class="bi bi-leaf me-2"></i>Laporan Lingkungan
         </a>
+        <a href="{{ route('reports.sold-products') }}" class="nav-link @active('reports.sold-products')">
+            <i class="bi bi-cart-check me-2"></i>Produk Terjual
+        </a>
+        <a href="{{ route('reports.stock-opname') }}" class="nav-link @active('reports.stock-opname')">
+            <i class="bi bi-clipboard-data me-2"></i>Stock Opname
+        </a>
+        <a href="{{ route('reports.pajak') }}" class="nav-link @active('reports.pajak')">
+            <i class="bi bi-percent me-2"></i>Laporan Pajak
+        </a>
+        <a href="{{ route('reports.payment-methods-report') }}" class="nav-link @active('reports.payment-methods-report')">
+            <i class="bi bi-wallet2 me-2"></i>Metode Pembayaran
+        </a>
+        <a href="{{ route('reports.customer-spent') }}" class="nav-link @active('reports.customer-spent')">
+            <i class="bi bi-person-lines-fill me-2"></i>Customer Spent
+        </a>
     </nav>
 </div>
 
