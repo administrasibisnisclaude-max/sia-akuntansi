@@ -173,6 +173,13 @@ class InvoiceController extends Controller
                 }
             }
 
+            \App\Services\EnvironmentalService::recordFromLines(
+                $invoice->lines,
+                'ar_invoice_line',
+                $invoice->date->toDateString(),
+                auth()->id()
+            );
+
             $invoice->update(['status' => 'sent', 'journal_id' => $journal->id]);
         });
 

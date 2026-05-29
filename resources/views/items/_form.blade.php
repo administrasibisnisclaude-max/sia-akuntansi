@@ -37,3 +37,40 @@
 <div class="form-check"><input type="hidden" name="is_active" value="0">
 <input type="checkbox" name="is_active" value="1" class="form-check-input" id="ia" @checked(old('is_active', $item->is_active ?? true))>
 <label class="form-check-label" for="ia">Aktif</label></div>
+
+<hr class="my-4">
+<h6 class="text-success mb-3"><i class="bi bi-leaf me-1"></i>Data Lingkungan <small class="text-muted fw-normal">(Opsional)</small></h6>
+<div class="row g-3 mb-3">
+    <div class="col-md-3">
+        <label class="form-label">Limbah/Unit (kg)</label>
+        <input type="number" name="waste_per_unit" class="form-control @error('waste_per_unit') is-invalid @enderror"
+               value="{{ old('waste_per_unit', $item->waste_per_unit ?? 0) }}" min="0" step="0.0001">
+        @error('waste_per_unit')<div class="invalid-feedback">{{ $message }}</div>@enderror
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">Kategori Limbah</label>
+        <input type="text" name="waste_category" class="form-control @error('waste_category') is-invalid @enderror"
+               value="{{ old('waste_category', $item->waste_category ?? '') }}"
+               placeholder="Cth: B3, Non-B3, Plastik" maxlength="50">
+        @error('waste_category')<div class="invalid-feedback">{{ $message }}</div>@enderror
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">Karbon/Unit (kg CO&#x2082;e)</label>
+        <input type="number" name="carbon_per_unit" class="form-control @error('carbon_per_unit') is-invalid @enderror"
+               value="{{ old('carbon_per_unit', $item->carbon_per_unit ?? 0) }}" min="0" step="0.0001">
+        @error('carbon_per_unit')<div class="invalid-feedback">{{ $message }}</div>@enderror
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">Kategori Karbon</label>
+        <input type="text" name="carbon_category" class="form-control @error('carbon_category') is-invalid @enderror"
+               value="{{ old('carbon_category', $item->carbon_category ?? '') }}"
+               placeholder="Cth: Scope 1, Scope 2" maxlength="50">
+        @error('carbon_category')<div class="invalid-feedback">{{ $message }}</div>@enderror
+    </div>
+</div>
+<div class="mb-3">
+    <label class="form-label">Catatan Lingkungan</label>
+    <textarea name="environmental_notes" class="form-control @error('environmental_notes') is-invalid @enderror"
+              rows="2" maxlength="1000">{{ old('environmental_notes', $item->environmental_notes ?? '') }}</textarea>
+    @error('environmental_notes')<div class="invalid-feedback">{{ $message }}</div>@enderror
+</div>

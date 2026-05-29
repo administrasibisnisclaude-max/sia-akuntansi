@@ -37,6 +37,11 @@ class ItemController extends Controller
             'purchase_account_id'  => 'nullable|exists:accounts,id',
             'inventory_account_id' => 'nullable|exists:accounts,id',
             'is_active'            => 'boolean',
+            'waste_per_unit'       => 'nullable|numeric|min:0',
+            'carbon_per_unit'      => 'nullable|numeric|min:0',
+            'waste_category'       => 'nullable|string|max:50',
+            'carbon_category'      => 'nullable|string|max:50',
+            'environmental_notes'  => 'nullable|string|max:1000',
         ]);
         $data['item_code'] = NumberingService::generate('ITM', 'items', 'item_code');
         $data['is_active'] = $request->boolean('is_active', true);
@@ -64,6 +69,11 @@ class ItemController extends Controller
             'purchase_account_id'  => 'nullable|exists:accounts,id',
             'inventory_account_id' => 'nullable|exists:accounts,id',
             'is_active'            => 'boolean',
+            'waste_per_unit'       => 'nullable|numeric|min:0',
+            'carbon_per_unit'      => 'nullable|numeric|min:0',
+            'waste_category'       => 'nullable|string|max:50',
+            'carbon_category'      => 'nullable|string|max:50',
+            'environmental_notes'  => 'nullable|string|max:1000',
         ]);
         $data['is_active'] = $request->boolean('is_active', true);
         $item->update($data);

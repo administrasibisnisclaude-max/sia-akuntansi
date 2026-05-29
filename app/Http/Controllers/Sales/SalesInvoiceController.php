@@ -160,6 +160,13 @@ class SalesInvoiceController extends Controller
                 }
             }
 
+            \App\Services\EnvironmentalService::recordFromLines(
+                $invoice->lines,
+                'sales_invoice_line',
+                $invoice->date->toDateString(),
+                auth()->id()
+            );
+
             $invoice->update(['status' => 'posted', 'journal_id' => $journal->id]);
         });
 

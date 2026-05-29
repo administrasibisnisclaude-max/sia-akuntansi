@@ -128,6 +128,38 @@ class ReportController extends Controller
         return view('reports.cash-flow', compact('totalIn', 'totalOut', 'netCash', 'from', 'to'));
     }
 
+    public function environmental(Request $request)
+    {
+        $from = $request->input('date_from', now()->startOfMonth()->toDateString());
+        $to   = $request->input('date_to',   now()->toDateString());
+
+        $rows = DB::table('environmental_impacts')
+            ->join('items', 'items.id', '=', 'environmental_impacts.item_id')
+            ->whereBetween('environmental_impacts.date', [$from, $to])
+            ->when($request->waste_category, fn($q, $v) => $q->where('environmental_impacts.waste_category', $v))
+            ->when($request->carbon_category, fn($q, $v) => $q->where('environmental_impacts.carbon_category', $v))
+            ->when($request->source_type, fn($q, $v) => $q->where('environmental_impacts.reference_type', $v))
+            ->groupBy('items.id', 'items.name', 'items.item_code',
+                      'environmental_impacts.waste_category',
+                      'environmental_impacts.carbon_category')
+            ->selectRaw('items.id as item_id, items.name as item_name,
+                         COALESCE(items.item_code, \'\') as item_code,
+                         environmental_impacts.waste_category,
+                         environmental_impacts.carbon_category,
+                         SUM(environmental_impacts.qty) as total_qty,
+                         SUM(environmental_impacts.waste_kg) as total_waste,
+                         SUM(environmental_impacts.carbon_kg) as total_carbon')
+            ->orderByDesc('total_waste')
+            ->get();
+
+        $totalWaste  = $rows->sum('total_waste');
+        $totalCarbon = $rows->sum('total_carbon');
+        $totalTrx    = \App\Models\EnvironmentalImpact::whereBetween('date', [$from, $to])->count();
+        $topWaste    = $rows->sortByDesc('total_waste')->take(5);
+
+        return view('reports.environmental', compact('rows', 'totalWaste', 'totalCarbon', 'totalTrx', 'topWaste', 'from', 'to'));
+    }
+
     private function calculateNetIncome(string $to): float
     {
         $revenues = DB::table('journal_lines')
