@@ -1,47 +1,15 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'SIA Akuntansi') - {{ config('app.name') }}</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>@yield('title', 'Dashboard') - SIA Akuntansi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+    <link href="{{ asset('css/sb-admin.css') }}" rel="stylesheet" />
     <style>
-        :root { --sidebar-width: 260px; }
-        body { font-size: 14px; background: #f8f9fa; }
-
-        #sidebar {
-            width: var(--sidebar-width);
-            height: 100vh;              /* fixed height agar scroll aktif */
-            background: #1e293b;
-            position: fixed;
-            top: 0; left: 0;
-            overflow-y: auto;
-            overflow-x: hidden;
-            z-index: 1000;
-            transition: .3s;
-        }
-
-        /* custom scrollbar */
-        #sidebar::-webkit-scrollbar { width: 4px; }
-        #sidebar::-webkit-scrollbar-track { background: #1e293b; }
-        #sidebar::-webkit-scrollbar-thumb { background: #475569; border-radius: 2px; }
-        #sidebar::-webkit-scrollbar-thumb:hover { background: #64748b; }
-
-        #sidebar nav { padding-bottom: 2rem; } /* ruang di bawah item terakhir */
-
-        #sidebar .brand { padding: 1rem 1.25rem; border-bottom: 1px solid #334155; }
-        #sidebar .nav-link { color: #94a3b8; padding: .5rem 1.25rem; border-radius: 0; }
-        #sidebar .nav-link:hover, #sidebar .nav-link.active { color: #fff; background: #334155; }
-        #sidebar .nav-label { font-size: .7rem; font-weight: 600; text-transform: uppercase; color: #64748b; padding: .75rem 1.25rem .25rem; letter-spacing: .06em; }
-
-        #main { margin-left: var(--sidebar-width); }
-        #topbar { background: #fff; border-bottom: 1px solid #e2e8f0; }
-
-        .card { border: 1px solid #e2e8f0; border-radius: .5rem; }
-        .card-header { background: #fff; border-bottom: 1px solid #e2e8f0; font-weight: 600; }
-        .table th { font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; color: #64748b; background: #f8fafc; }
-
         .badge-draft     { background: #e2e8f0; color: #475569; }
         .badge-posted    { background: #dcfce7; color: #16a34a; }
         .badge-sent      { background: #dbeafe; color: #1d4ed8; }
@@ -51,137 +19,240 @@
         .badge-cancelled { background: #fee2e2; color: #b91c1c; }
         .badge-accepted  { background: #d1fae5; color: #065f46; }
         .badge-expired   { background: #f3f4f6; color: #6b7280; }
-
+        .sb-sidenav-menu .nav-link { font-size: 0.875rem; }
         @media print {
-            #sidebar, #topbar, .no-print { display: none !important; }
-            #main { margin-left: 0 !important; }
+            #layoutSidenav_nav, .sb-topnav, .no-print { display: none !important; }
+            #layoutSidenav_content { margin-left: 0 !important; }
         }
     </style>
     @stack('styles')
 </head>
-<body>
-<div id="sidebar">
-    <div class="brand d-flex align-items-center gap-2">
-        <i class="bi bi-bar-chart-fill text-primary fs-5"></i>
-        <span class="text-white fw-bold">SIA Akuntansi</span>
-    </div>
-    <nav class="py-2">
-        <div class="nav-label">Utama</div>
-        <a href="{{ route('dashboard') }}" class="nav-link @active('dashboard')">
-            <i class="bi bi-speedometer2 me-2"></i>Dashboard
-        </a>
+<body class="sb-nav-fixed">
 
-        <div class="nav-label">Master Data</div>
-        <a href="{{ route('accounts.index') }}" class="nav-link @active('accounts.*')">
-            <i class="bi bi-list-columns me-2"></i>Akun (CoA)
+    {{-- Top Navbar --}}
+    <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
+        <a class="navbar-brand ps-3" href="{{ route('dashboard') }}">
+            <i class="fas fa-chart-line me-2"></i>SIA Akuntansi
         </a>
-        <a href="{{ route('customers.index') }}" class="nav-link @active('customers.*')">
-            <i class="bi bi-people me-2"></i>Pelanggan
-        </a>
-        <a href="{{ route('vendors.index') }}" class="nav-link @active('vendors.*')">
-            <i class="bi bi-building me-2"></i>Vendor
-        </a>
-        <a href="{{ route('items.index') }}" class="nav-link @active('items.*')">
-            <i class="bi bi-box-seam me-2"></i>Item
-        </a>
-        <a href="{{ route('payment-methods.index') }}" class="nav-link @active('payment-methods.*')">
-            <i class="bi bi-credit-card me-2"></i>Metode Bayar
-        </a>
-
-        <div class="nav-label">Transaksi</div>
-        <a href="{{ route('journals.index') }}" class="nav-link @active('journals.*')">
-            <i class="bi bi-journal-text me-2"></i>Jurnal Umum
-        </a>
-        <a href="{{ route('ar.invoices.index') }}" class="nav-link @active('ar.*')">
-            <i class="bi bi-receipt me-2"></i>Piutang (AR)
-        </a>
-        <a href="{{ route('ap.bills.index') }}" class="nav-link @active('ap.*')">
-            <i class="bi bi-file-earmark-text me-2"></i>Utang (AP)
-        </a>
-        <a href="{{ route('sales.quotations.index') }}" class="nav-link @active('sales.quotations.*')">
-            <i class="bi bi-file-earmark-check me-2"></i>Penawaran Harga
-        </a>
-        <a href="{{ route('sales.invoices.index') }}" class="nav-link @active('sales.invoices.*')">
-            <i class="bi bi-receipt-cutoff me-2"></i>Faktur Penjualan
-        </a>
-        <a href="{{ route('sales.receipts.index') }}" class="nav-link @active('sales.receipts.*')">
-            <i class="bi bi-cash-coin me-2"></i>Bukti Penerimaan
-        </a>
-        <a href="{{ route('inventory.index') }}" class="nav-link @active('inventory.*')">
-            <i class="bi bi-archive me-2"></i>Inventori
-        </a>
-
-        <div class="nav-label">Laporan</div>
-        <a href="{{ route('reports.trial-balance') }}" class="nav-link @active('reports.trial-balance')">
-            <i class="bi bi-table me-2"></i>Neraca Saldo
-        </a>
-        <a href="{{ route('reports.balance-sheet') }}" class="nav-link @active('reports.balance-sheet')">
-            <i class="bi bi-bar-chart me-2"></i>Neraca
-        </a>
-        <a href="{{ route('reports.income-statement') }}" class="nav-link @active('reports.income-statement')">
-            <i class="bi bi-graph-up me-2"></i>Laba Rugi
-        </a>
-        <a href="{{ route('reports.general-ledger') }}" class="nav-link @active('reports.general-ledger')">
-            <i class="bi bi-book me-2"></i>Buku Besar
-        </a>
-        <a href="{{ route('reports.cash-flow') }}" class="nav-link @active('reports.cash-flow')">
-            <i class="bi bi-cash-stack me-2"></i>Arus Kas
-        </a>
-        <a href="{{ route('reports.environmental') }}" class="nav-link @active('reports.environmental')">
-            <i class="bi bi-leaf me-2"></i>Laporan Lingkungan
-        </a>
-        <a href="{{ route('reports.sold-products') }}" class="nav-link @active('reports.sold-products')">
-            <i class="bi bi-cart-check me-2"></i>Produk Terjual
-        </a>
-        <a href="{{ route('reports.stock-opname') }}" class="nav-link @active('reports.stock-opname')">
-            <i class="bi bi-clipboard-data me-2"></i>Stock Opname
-        </a>
-        <a href="{{ route('reports.pajak') }}" class="nav-link @active('reports.pajak')">
-            <i class="bi bi-percent me-2"></i>Laporan Pajak
-        </a>
-        <a href="{{ route('reports.payment-methods-report') }}" class="nav-link @active('reports.payment-methods-report')">
-            <i class="bi bi-wallet2 me-2"></i>Metode Pembayaran
-        </a>
-        <a href="{{ route('reports.customer-spent') }}" class="nav-link @active('reports.customer-spent')">
-            <i class="bi bi-person-lines-fill me-2"></i>Customer Spent
-        </a>
+        <button class="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0" id="sidebarToggle">
+            <i class="fas fa-bars"></i>
+        </button>
+        <ul class="navbar-nav ms-auto ms-md-0 me-3 me-lg-4">
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button"
+                   data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-user fa-fw"></i>
+                    <span class="ms-1 small d-none d-md-inline">{{ auth()->user()->name }}</span>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                    <li>
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit" class="dropdown-item">
+                                <i class="fas fa-sign-out-alt fa-fw me-2"></i>Keluar
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </li>
+        </ul>
     </nav>
-</div>
 
-<div id="main">
-    <nav id="topbar" class="navbar px-3 py-2 d-flex justify-content-between align-items-center">
-        <span class="fw-semibold text-secondary">@yield('title', 'Dashboard')</span>
-        <div class="d-flex align-items-center gap-3">
-            <span class="text-secondary small">{{ auth()->user()->name }}</span>
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button type="submit" class="btn btn-sm btn-outline-secondary">
-                    <i class="bi bi-box-arrow-right me-1"></i>Keluar
-                </button>
-            </form>
+    <div id="layoutSidenav">
+        {{-- Sidebar --}}
+        <div id="layoutSidenav_nav">
+            <nav class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
+                <div class="sb-sidenav-menu">
+                    <div class="nav">
+
+                        {{-- Utama --}}
+                        <div class="sb-sidenav-menu-heading">Utama</div>
+                        <a class="nav-link @active('dashboard')" href="{{ route('dashboard') }}">
+                            <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
+                            Dashboard
+                        </a>
+
+                        {{-- Master Data --}}
+                        <div class="sb-sidenav-menu-heading">Master Data</div>
+                        <a class="nav-link @active('accounts.*')" href="{{ route('accounts.index') }}">
+                            <div class="sb-nav-link-icon"><i class="fas fa-list"></i></div>
+                            Akun (CoA)
+                        </a>
+                        <a class="nav-link @active('customers.*')" href="{{ route('customers.index') }}">
+                            <div class="sb-nav-link-icon"><i class="fas fa-users"></i></div>
+                            Pelanggan
+                        </a>
+                        <a class="nav-link @active('vendors.*')" href="{{ route('vendors.index') }}">
+                            <div class="sb-nav-link-icon"><i class="fas fa-building"></i></div>
+                            Vendor
+                        </a>
+                        <a class="nav-link @active('items.*')" href="{{ route('items.index') }}">
+                            <div class="sb-nav-link-icon"><i class="fas fa-box"></i></div>
+                            Item / Produk
+                        </a>
+                        <a class="nav-link @active('payment-methods.*')" href="{{ route('payment-methods.index') }}">
+                            <div class="sb-nav-link-icon"><i class="fas fa-credit-card"></i></div>
+                            Metode Pembayaran
+                        </a>
+
+                        {{-- Transaksi --}}
+                        <div class="sb-sidenav-menu-heading">Transaksi</div>
+
+                        {{-- Jurnal --}}
+                        <a class="nav-link collapsed @active('journals.*')" href="#collapseJurnal"
+                           data-bs-toggle="collapse" aria-expanded="{{ request()->routeIs('journals.*') ? 'true' : 'false' }}">
+                            <div class="sb-nav-link-icon"><i class="fas fa-book"></i></div>
+                            Jurnal
+                            <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+                        </a>
+                        <div class="collapse {{ request()->routeIs('journals.*') ? 'show' : '' }}" id="collapseJurnal" data-bs-parent="#sidenavAccordion">
+                            <nav class="sb-sidenav-menu-nested nav">
+                                <a class="nav-link @active('journals.*')" href="{{ route('journals.index') }}">Jurnal Umum</a>
+                            </nav>
+                        </div>
+
+                        {{-- Piutang (AR) --}}
+                        <a class="nav-link collapsed @active('ar.*')" href="#collapseAr"
+                           data-bs-toggle="collapse" aria-expanded="{{ request()->routeIs('ar.*') ? 'true' : 'false' }}">
+                            <div class="sb-nav-link-icon"><i class="fas fa-file-invoice-dollar"></i></div>
+                            Piutang (AR)
+                            <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+                        </a>
+                        <div class="collapse {{ request()->routeIs('ar.*') ? 'show' : '' }}" id="collapseAr" data-bs-parent="#sidenavAccordion">
+                            <nav class="sb-sidenav-menu-nested nav">
+                                <a class="nav-link @active('ar.invoices.*')" href="{{ route('ar.invoices.index') }}">Invoice AR</a>
+                            </nav>
+                        </div>
+
+                        {{-- Hutang (AP) --}}
+                        <a class="nav-link collapsed @active('ap.*')" href="#collapseAp"
+                           data-bs-toggle="collapse" aria-expanded="{{ request()->routeIs('ap.*') ? 'true' : 'false' }}">
+                            <div class="sb-nav-link-icon"><i class="fas fa-file-alt"></i></div>
+                            Hutang (AP)
+                            <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+                        </a>
+                        <div class="collapse {{ request()->routeIs('ap.*') ? 'show' : '' }}" id="collapseAp" data-bs-parent="#sidenavAccordion">
+                            <nav class="sb-sidenav-menu-nested nav">
+                                <a class="nav-link @active('ap.bills.*')" href="{{ route('ap.bills.index') }}">Tagihan AP</a>
+                            </nav>
+                        </div>
+
+                        {{-- Penjualan --}}
+                        <a class="nav-link collapsed @active('sales.*')" href="#collapseSales"
+                           data-bs-toggle="collapse" aria-expanded="{{ request()->routeIs('sales.*') ? 'true' : 'false' }}">
+                            <div class="sb-nav-link-icon"><i class="fas fa-shopping-cart"></i></div>
+                            Penjualan
+                            <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+                        </a>
+                        <div class="collapse {{ request()->routeIs('sales.*') ? 'show' : '' }}" id="collapseSales" data-bs-parent="#sidenavAccordion">
+                            <nav class="sb-sidenav-menu-nested nav">
+                                <a class="nav-link @active('sales.quotations.*')" href="{{ route('sales.quotations.index') }}">Penawaran Harga</a>
+                                <a class="nav-link @active('sales.invoices.*')" href="{{ route('sales.invoices.index') }}">Faktur Penjualan</a>
+                                <a class="nav-link @active('sales.receipts.*')" href="{{ route('sales.receipts.index') }}">Bukti Penerimaan</a>
+                            </nav>
+                        </div>
+
+                        {{-- Inventori --}}
+                        <a class="nav-link @active('inventory.*')" href="{{ route('inventory.index') }}">
+                            <div class="sb-nav-link-icon"><i class="fas fa-warehouse"></i></div>
+                            Inventori
+                        </a>
+
+                        {{-- Laporan --}}
+                        <div class="sb-sidenav-menu-heading">Laporan</div>
+
+                        {{-- Laporan Keuangan --}}
+                        <a class="nav-link collapsed @active('reports.trial-balance') @active('reports.balance-sheet') @active('reports.income-statement') @active('reports.general-ledger') @active('reports.cash-flow')"
+                           href="#collapseReportKeuangan" data-bs-toggle="collapse"
+                           aria-expanded="{{ request()->routeIs(['reports.trial-balance','reports.balance-sheet','reports.income-statement','reports.general-ledger','reports.cash-flow']) ? 'true' : 'false' }}">
+                            <div class="sb-nav-link-icon"><i class="fas fa-chart-bar"></i></div>
+                            Laporan Keuangan
+                            <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+                        </a>
+                        <div class="collapse {{ request()->routeIs(['reports.trial-balance','reports.balance-sheet','reports.income-statement','reports.general-ledger','reports.cash-flow']) ? 'show' : '' }}"
+                             id="collapseReportKeuangan" data-bs-parent="#sidenavAccordion">
+                            <nav class="sb-sidenav-menu-nested nav">
+                                <a class="nav-link @active('reports.trial-balance')" href="{{ route('reports.trial-balance') }}">Neraca Saldo</a>
+                                <a class="nav-link @active('reports.balance-sheet')" href="{{ route('reports.balance-sheet') }}">Neraca</a>
+                                <a class="nav-link @active('reports.income-statement')" href="{{ route('reports.income-statement') }}">Laba Rugi</a>
+                                <a class="nav-link @active('reports.general-ledger')" href="{{ route('reports.general-ledger') }}">Buku Besar</a>
+                                <a class="nav-link @active('reports.cash-flow')" href="{{ route('reports.cash-flow') }}">Arus Kas</a>
+                            </nav>
+                        </div>
+
+                        {{-- Laporan Operasional --}}
+                        <a class="nav-link collapsed @active('reports.sold-products') @active('reports.stock-opname') @active('reports.pajak') @active('reports.payment-methods-report') @active('reports.customer-spent')"
+                           href="#collapseReportOps" data-bs-toggle="collapse"
+                           aria-expanded="{{ request()->routeIs(['reports.sold-products','reports.stock-opname','reports.pajak','reports.payment-methods-report','reports.customer-spent']) ? 'true' : 'false' }}">
+                            <div class="sb-nav-link-icon"><i class="fas fa-chart-pie"></i></div>
+                            Laporan Operasional
+                            <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+                        </a>
+                        <div class="collapse {{ request()->routeIs(['reports.sold-products','reports.stock-opname','reports.pajak','reports.payment-methods-report','reports.customer-spent']) ? 'show' : '' }}"
+                             id="collapseReportOps" data-bs-parent="#sidenavAccordion">
+                            <nav class="sb-sidenav-menu-nested nav">
+                                <a class="nav-link @active('reports.sold-products')" href="{{ route('reports.sold-products') }}">Produk Terjual</a>
+                                <a class="nav-link @active('reports.stock-opname')" href="{{ route('reports.stock-opname') }}">Stock Opname</a>
+                                <a class="nav-link @active('reports.pajak')" href="{{ route('reports.pajak') }}">Laporan Pajak</a>
+                                <a class="nav-link @active('reports.payment-methods-report')" href="{{ route('reports.payment-methods-report') }}">Metode Pembayaran</a>
+                                <a class="nav-link @active('reports.customer-spent')" href="{{ route('reports.customer-spent') }}">Customer Spent</a>
+                            </nav>
+                        </div>
+
+                        {{-- Laporan Lingkungan --}}
+                        <a class="nav-link @active('reports.environmental')" href="{{ route('reports.environmental') }}">
+                            <div class="sb-nav-link-icon"><i class="fas fa-leaf"></i></div>
+                            Laporan Lingkungan
+                        </a>
+
+                    </div>
+                </div>
+                <div class="sb-sidenav-footer">
+                    <div class="small">Login sebagai:</div>
+                    {{ auth()->user()->name }}
+                </div>
+            </nav>
         </div>
-    </nav>
 
-    <div class="p-4">
-        @if(session('success'))
-            <div class="alert alert-success alert-dismissible fade show">
-                <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        @endif
-        @if($errors->any())
-            <div class="alert alert-danger alert-dismissible fade show">
-                <i class="bi bi-exclamation-triangle me-2"></i>
-                @foreach($errors->all() as $error) {{ $error }}<br> @endforeach
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        @endif
+        {{-- Main Content --}}
+        <div id="layoutSidenav_content">
+            <main>
+                <div class="container-fluid px-4">
+                    <h1 class="mt-4">@yield('title', 'Dashboard')</h1>
+                    <ol class="breadcrumb mb-4">
+                        <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
+                        <li class="breadcrumb-item active">@yield('title', 'Dashboard')</li>
+                    </ol>
 
-        @yield('content')
+                    @if(session('success'))
+                        <div class="alert alert-success alert-dismissible fade show">
+                            <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    @endif
+                    @if($errors->any())
+                        <div class="alert alert-danger alert-dismissible fade show">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            @foreach($errors->all() as $error){{ $error }}<br>@endforeach
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    @endif
+
+                    @yield('content')
+                </div>
+            </main>
+            <footer class="py-4 bg-light mt-auto">
+                <div class="container-fluid px-4">
+                    <div class="d-flex align-items-center justify-content-between small">
+                        <div class="text-muted">SIA Akuntansi &copy; {{ date('Y') }}</div>
+                    </div>
+                </div>
+            </footer>
+        </div>
     </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-@stack('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+    <script src="{{ asset('js/sb-admin.js') }}"></script>
+    @stack('scripts')
 </body>
 </html>
