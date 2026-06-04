@@ -44,7 +44,8 @@
     <div class="col-md-3">
         <label class="form-label">Limbah/Unit (kg)</label>
         <input type="number" name="waste_per_unit" class="form-control @error('waste_per_unit') is-invalid @enderror"
-               value="{{ old('waste_per_unit', $item->waste_per_unit ?? 0) }}" min="0" step="0.0001">
+               value="{{ old('waste_per_unit', ($item->exists && $item->waste_per_unit > 0) ? $item->waste_per_unit : '') }}"
+               min="0" step="0.0001" placeholder="0.0000">
         @error('waste_per_unit')<div class="invalid-feedback">{{ $message }}</div>@enderror
     </div>
     <div class="col-md-3">
@@ -57,7 +58,8 @@
     <div class="col-md-3">
         <label class="form-label">Karbon/Unit (kg CO&#x2082;e)</label>
         <input type="number" name="carbon_per_unit" class="form-control @error('carbon_per_unit') is-invalid @enderror"
-               value="{{ old('carbon_per_unit', $item->carbon_per_unit ?? 0) }}" min="0" step="0.0001">
+               value="{{ old('carbon_per_unit', ($item->exists && $item->carbon_per_unit > 0) ? $item->carbon_per_unit : '') }}"
+               min="0" step="0.0001" placeholder="0.0000">
         @error('carbon_per_unit')<div class="invalid-feedback">{{ $message }}</div>@enderror
     </div>
     <div class="col-md-3">

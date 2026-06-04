@@ -20,7 +20,8 @@ class ItemController extends Controller
     public function create()
     {
         $accounts = Account::orderBy('account_code')->get();
-        return view('items.create', compact('accounts'));
+        $item     = new Item();
+        return view('items.create', compact('accounts', 'item'));
     }
 
     public function store(Request $request)
