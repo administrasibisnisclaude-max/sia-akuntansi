@@ -14,9 +14,13 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         View::composer('*', function ($view) {
-            $company = Cache::remember('company_settings', 3600, function () {
-                return \App\Models\CompanySetting::all()->pluck('value', 'key');
-            });
+            try {
+                $company = Cache::remember('company_settings', 3600, function () {
+                    return \App\Models\CompanySetting::all()->pluck('value', 'key');
+                });
+            } catch (\Exception $e) {
+                $company = collect();
+            }
             $view->with('company', $company);
         });
 
