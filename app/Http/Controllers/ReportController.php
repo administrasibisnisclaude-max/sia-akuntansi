@@ -157,7 +157,25 @@ class ReportController extends Controller
         $totalTrx    = \App\Models\EnvironmentalImpact::whereBetween('date', [$from, $to])->count();
         $topWaste    = $rows->sortByDesc('total_waste')->take(5);
 
-        return view('reports.environmental', compact('rows', 'totalWaste', 'totalCarbon', 'totalTrx', 'topWaste', 'from', 'to'));
+        // Items already configured with environmental data
+        $configuredItems = DB::table('items')
+            ->whereNull('deleted_at')
+            ->where(fn($q) => $q->where('waste_per_unit', '>', 0)->orWhere('carbon_per_unit', '>', 0))
+            ->select('id', 'item_code', 'name', 'waste_per_unit', 'carbon_per_unit', 'waste_category', 'carbon_category')
+            ->orderBy('name')->get();
+
+        // Items NOT yet configured (waste=0 AND carbon=0)
+        $unconfiguredItems = DB::table('items')
+            ->whereNull('deleted_at')
+            ->where('waste_per_unit', '<=', 0)
+            ->where('carbon_per_unit', '<=', 0)
+            ->select('id', 'item_code', 'name')
+            ->orderBy('name')->get();
+
+        return view('reports.environmental', compact(
+            'rows', 'totalWaste', 'totalCarbon', 'totalTrx', 'topWaste', 'from', 'to',
+            'configuredItems', 'unconfiguredItems'
+        ));
     }
 
     public function soldProducts(Request $request)

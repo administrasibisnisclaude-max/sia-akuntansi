@@ -81,6 +81,65 @@
     </div>
 </div>
 
+{{-- Warning: no items configured --}}
+@if($configuredItems->isEmpty())
+<div class="alert alert-warning d-flex gap-3 align-items-start mb-4 no-print">
+    <i class="fas fa-exclamation-triangle fa-lg mt-1"></i>
+    <div>
+        <strong>Belum ada produk yang dikonfigurasi data lingkungan.</strong><br>
+        Laporan ini hanya mencatat dampak dari produk yang memiliki nilai <strong>Limbah/Unit (kg)</strong> atau <strong>Karbon/Unit (kg CO₂e)</strong> lebih dari 0.
+        Silakan buka halaman <a href="{{ route('items.index') }}">Item / Produk</a>, edit setiap produk, dan isi bagian <em>Data Lingkungan</em>.
+    </div>
+</div>
+@elseif($rows->isEmpty())
+<div class="alert alert-info d-flex gap-3 align-items-start mb-4 no-print">
+    <i class="fas fa-info-circle fa-lg mt-1"></i>
+    <div>
+        <strong>Tidak ada transaksi dampak lingkungan pada periode ini.</strong><br>
+        Terdapat <strong>{{ $configuredItems->count() }} produk</strong> yang sudah dikonfigurasi. Pastikan faktur yang menggunakan produk tersebut sudah diposting pada periode yang dipilih.
+    </div>
+</div>
+@endif
+
+{{-- Configured items summary --}}
+@if($configuredItems->isNotEmpty())
+<div class="card mb-4 no-print">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-leaf me-2 text-success"></i>Produk Terkonfigurasi Data Lingkungan ({{ $configuredItems->count() }})</span>
+        @if($unconfiguredItems->isNotEmpty())
+        <span class="badge bg-warning text-dark">{{ $unconfiguredItems->count() }} produk belum dikonfigurasi</span>
+        @endif
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-sm mb-0">
+            <thead>
+                <tr>
+                    <th>Kode</th><th>Nama Produk</th>
+                    <th class="text-end">Limbah/Unit (kg)</th>
+                    <th>Kat. Limbah</th>
+                    <th class="text-end">Karbon/Unit (kg CO₂e)</th>
+                    <th>Kat. Karbon</th>
+                    <th class="no-print"></th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach($configuredItems as $ci)
+            <tr>
+                <td><code>{{ $ci->item_code }}</code></td>
+                <td>{{ $ci->name }}</td>
+                <td class="text-end">{{ number_format($ci->waste_per_unit, 4, ',', '.') }}</td>
+                <td>{{ $ci->waste_category ?: '-' }}</td>
+                <td class="text-end">{{ number_format($ci->carbon_per_unit, 4, ',', '.') }}</td>
+                <td>{{ $ci->carbon_category ?: '-' }}</td>
+                <td class="no-print"><a href="{{ route('items.edit', $ci->id) }}" class="btn btn-xs btn-outline-secondary btn-sm py-0 px-2">Edit</a></td>
+            </tr>
+            @endforeach
+            </tbody>
+        </table>
+    </div>
+</div>
+@endif
+
 @if($topWaste->isNotEmpty())
 <div class="card mb-4">
     <div class="card-header">
