@@ -22,8 +22,17 @@
 </head>
 <body>
     <div class="company">
+        @if(!empty($company['company_logo']))
+        <img src="{{ public_path('storage/' . $company['company_logo']) }}" style="height:50px; margin-bottom:5px;"><br>
+        @endif
         <h1>PENAWARAN HARGA</h1>
-        <div>PT. SIA Akuntansi &nbsp;|&nbsp; Jl. Contoh No. 1, Jakarta</div>
+        <div>{{ $company['company_name'] ?? 'PT. SIA Akuntansi' }}
+            @if(!empty($company['company_tagline'])) &nbsp;|&nbsp; {{ $company['company_tagline'] }}@endif
+        </div>
+        <div>{{ $company['company_address'] ?? '' }}@if(!empty($company['company_city'])), {{ $company['company_city'] }}@endif</div>
+        @if(!empty($company['company_phone']) || !empty($company['company_email']))
+        <div>@if(!empty($company['company_phone']))Telp: {{ $company['company_phone'] }}@endif @if(!empty($company['company_email'])) &nbsp;|&nbsp; Email: {{ $company['company_email'] }}@endif</div>
+        @endif
     </div>
 
     <table class="info-table">
@@ -82,6 +91,10 @@
 
     @if($quotation->notes)
     <p style="margin-top:16px; font-style:italic;">Catatan: {{ $quotation->notes }}</p>
+    @endif
+
+    @if(!empty($company['invoice_footer']))
+    <p style="margin-top:20px; text-align:center; font-size:10px; color:#666;">{{ $company['invoice_footer'] }}</p>
     @endif
 
     <div class="sign-area">

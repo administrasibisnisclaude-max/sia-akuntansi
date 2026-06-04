@@ -11,6 +11,7 @@ use App\Http\Controllers\{
     ReportController,
 };
 use App\Http\Controllers\AR\InvoiceController as ArInvoiceController;
+use App\Http\Controllers\SettingController;
 use App\Http\Controllers\Sales\QuotationController;
 use App\Http\Controllers\Sales\SalesInvoiceController;
 use App\Http\Controllers\Sales\ReceiptController;
@@ -74,6 +75,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('movements',   [MovementController::class, 'movements'])->name('movements');
         Route::post('adjustment', [MovementController::class, 'adjustment'])->name('adjustment');
     });
+
+    // Pengaturan
+    Route::get('settings', [SettingController::class, 'index'])->name('settings.index');
+    Route::post('settings', [SettingController::class, 'update'])->name('settings.update');
 
     // Laporan
     Route::prefix('reports')->name('reports.')->group(function () {

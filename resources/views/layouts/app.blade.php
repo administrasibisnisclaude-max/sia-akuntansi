@@ -32,7 +32,7 @@
     {{-- Top Navbar --}}
     <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
         <a class="navbar-brand ps-3" href="{{ route('dashboard') }}">
-            <i class="fas fa-chart-line me-2"></i>SIA Akuntansi
+            <i class="fas fa-chart-line me-2"></i>{{ $company['company_name'] ?? 'SIA Akuntansi' }}
         </a>
         <button class="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0" id="sidebarToggle">
             <i class="fas fa-bars"></i>
@@ -203,6 +203,13 @@
                         <a class="nav-link @active('reports.environmental')" href="{{ route('reports.environmental') }}">
                             <div class="sb-nav-link-icon"><i class="fas fa-leaf"></i></div>
                             Laporan Lingkungan
+                        </a>
+
+                        {{-- Sistem --}}
+                        <div class="sb-sidenav-menu-heading">Sistem</div>
+                        <a class="nav-link @active('settings.*')" href="{{ route('settings.index') }}">
+                            <div class="sb-nav-link-icon"><i class="fas fa-cog"></i></div>
+                            Pengaturan Perusahaan
                         </a>
 
                     </div>
