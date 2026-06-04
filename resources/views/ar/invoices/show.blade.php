@@ -104,7 +104,7 @@
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Jumlah (Rp) <span class="text-danger">*</span></label>
-                    <input type="number" name="amount" class="form-control" value="{{ number_format($invoice->remainingAmount(), 2, '.', '') }}" min="0.01" max="{{ round($invoice->remainingAmount(), 2) }}" step="1" required>
+                    <input type="number" name="amount" class="form-control" value="{{ number_format($invoice->remainingAmount(), 2, '.', '') }}" min="0.01" max="{{ round($invoice->remainingAmount(), 2) }}" step="any" required>
                     <small class="text-muted">Sisa: Rp {{ number_format($invoice->remainingAmount(), 0, ',', '.') }}</small>
                 </div>
                 <div class="mb-3">
