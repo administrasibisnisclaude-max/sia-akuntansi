@@ -186,7 +186,7 @@ class SalesInvoiceController extends Controller
         $request->validate([
             'payment_method_id' => 'required|exists:payment_methods,id',
             'date'              => 'required|date',
-            'amount'            => 'required|numeric|min:0.01|max:' . $invoice->remainingAmount(),
+            'amount'            => 'required|numeric|min:0.01|max:' . round($invoice->remainingAmount(), 2),
             'reference_number'  => 'nullable|string',
             'notes'             => 'nullable|string',
         ]);
@@ -208,12 +208,9 @@ class SalesInvoiceController extends Controller
             $journal = JournalService::createFromSalesReceipt($receipt, auth()->id());
             $receipt->update(['journal_id' => $journal->id]);
 
-            $remaining = $invoice->remainingAmount();
-            if ($remaining <= 0.01) {
-                $invoice->update(['status' => 'paid']);
-            } else {
-                $invoice->update(['status' => 'partial']);
-            }
+            $invoice->refresh();
+            $remaining = round($invoice->remainingAmount(), 2);
+            $invoice->update(['status' => $remaining <= 0 ? 'paid' : 'partial']);
         });
 
         return back()->with('success', 'Pembayaran berhasil dicatat.');

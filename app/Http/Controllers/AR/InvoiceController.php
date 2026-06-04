@@ -199,7 +199,7 @@ class InvoiceController extends Controller
         $request->validate([
             'payment_method_id' => 'required|exists:payment_methods,id',
             'date'              => 'required|date',
-            'amount'            => 'required|numeric|min:0.01|max:' . $invoice->remainingAmount(),
+            'amount'            => 'required|numeric|min:0.01|max:' . round($invoice->remainingAmount(), 2),
             'notes'             => 'nullable|string',
         ]);
 
@@ -219,8 +219,9 @@ class InvoiceController extends Controller
             $journal = JournalService::createFromArPayment($payment, auth()->id());
             $payment->update(['journal_id' => $journal->id]);
 
-            $remaining = $invoice->remainingAmount();
-            if ($remaining <= 0.01) {
+            $invoice->refresh();
+            $remaining = round($invoice->remainingAmount(), 2);
+            if ($remaining <= 0) {
                 $invoice->update(['status' => 'paid']);
             } elseif ($invoice->paidAmount() > 0) {
                 $invoice->update(['status' => 'partial']);
