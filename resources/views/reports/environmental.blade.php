@@ -169,6 +169,13 @@
     <div class="card-header d-flex justify-content-between align-items-center">
         <span><i class="bi bi-leaf me-2 text-success"></i>Detail Dampak Lingkungan</span>
         <div class="d-flex gap-2 no-print">
+            <form method="POST" action="{{ route('reports.environmental.recalc') }}" class="d-inline">
+                @csrf
+                <button type="submit" class="btn btn-sm btn-outline-warning"
+                        onclick="return confirm('Hitung ulang dampak lingkungan dari semua faktur yang sudah diposting?')">
+                    <i class="bi bi-arrow-clockwise me-1"></i>Hitung Ulang
+                </button>
+            </form>
             <button onclick="window.print()" class="btn btn-sm btn-outline-secondary">
                 <i class="bi bi-printer me-1"></i>Cetak
             </button>

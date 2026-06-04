@@ -87,7 +87,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('income-statement', [ReportController::class, 'incomeStatement'])->name('income-statement');
         Route::get('general-ledger',   [ReportController::class, 'generalLedger'])->name('general-ledger');
         Route::get('cash-flow',        [ReportController::class, 'cashFlow'])->name('cash-flow');
-        Route::get('environmental',    [ReportController::class, 'environmental'])->name('environmental');
+        Route::get('environmental',          [ReportController::class, 'environmental'])->name('environmental');
+        Route::post('environmental/recalc', [ReportController::class, 'environmentalRecalc'])->name('environmental.recalc');
         Route::get('sold-products',          [ReportController::class, 'soldProducts'])->name('sold-products');
         Route::get('stock-opname',           [ReportController::class, 'stockOpname'])->name('stock-opname');
         Route::get('pajak',                  [ReportController::class, 'pajak'])->name('pajak');
