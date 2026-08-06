@@ -434,7 +434,7 @@ function calcChange() {
 
 function parseTotalNumber() {
     const txt = document.getElementById('sumTotal').textContent;
-    return parseFloat(txt.replace(/[^0-9.]/g, '')) || 0;
+    return parseInt(txt.replace(/\D/g, ''), 10) || 0;
 }
 
 function buildQuickAmounts(total) {
