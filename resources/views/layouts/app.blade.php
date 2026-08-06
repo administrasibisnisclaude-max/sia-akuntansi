@@ -98,6 +98,16 @@
                         {{-- Transaksi --}}
                         <div class="sb-sidenav-menu-heading">Transaksi</div>
 
+                        {{-- POS --}}
+                        <a class="nav-link @active('pos.index')" href="{{ route('pos.index') }}">
+                            <div class="sb-nav-link-icon"><i class="fas fa-cash-register"></i></div>
+                            Point of Sales
+                        </a>
+                        <a class="nav-link @active('pos.history')" href="{{ route('pos.history') }}">
+                            <div class="sb-nav-link-icon"><i class="fas fa-receipt"></i></div>
+                            Riwayat POS
+                        </a>
+
                         {{-- Jurnal --}}
                         <a class="nav-link collapsed @active('journals.*')" href="#collapseJurnal"
                            data-bs-toggle="collapse" aria-expanded="{{ request()->routeIs('journals.*') ? 'true' : 'false' }}">

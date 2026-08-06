@@ -9,6 +9,7 @@ use App\Http\Controllers\{
     PaymentMethodController,
     JournalController,
     ReportController,
+    PosController,
 };
 use App\Http\Controllers\AR\InvoiceController as ArInvoiceController;
 use App\Http\Controllers\SettingController;
@@ -31,6 +32,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('vendors', VendorController::class)->except(['show']);
     Route::resource('items', ItemController::class)->except(['show']);
     Route::resource('payment-methods', PaymentMethodController::class)->except(['show']);
+
+    // Point of Sales
+    Route::prefix('pos')->name('pos.')->group(function () {
+        Route::get('/',                    [PosController::class, 'index'])->name('index');
+        Route::get('/search',              [PosController::class, 'searchItems'])->name('search');
+        Route::post('/transaction',        [PosController::class, 'store'])->name('store');
+        Route::get('/receipt/{transaction}',[PosController::class, 'receipt'])->name('receipt');
+        Route::get('/history',             [PosController::class, 'history'])->name('history');
+    });
 
     // Jurnal Umum
     Route::resource('journals', JournalController::class);

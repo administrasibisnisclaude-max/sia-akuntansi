@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\{Journal, JournalLine, ArInvoice, ArPayment, ApBill, ApPayment, SalesInvoice, SalesReceipt};
+use App\Models\{Journal, JournalLine, ArInvoice, ArPayment, ApBill, ApPayment, SalesInvoice, SalesReceipt, PosTransaction};
 use Illuminate\Support\Facades\DB;
 
 class JournalService
@@ -332,6 +332,90 @@ class JournalService
                 'credit'      => $receipt->amount,
                 'order'       => 2,
             ]);
+
+            return $journal;
+        });
+    }
+
+    public static function createFromPos(PosTransaction $pos, int $userId): Journal
+    {
+        return DB::transaction(function () use ($pos, $userId) {
+            $cashCode = match($pos->payment_method) {
+                'transfer' => '1121',
+                default    => '1101',
+            };
+
+            $journal = Journal::create([
+                'journal_number' => NumberingService::generate('JRN', 'journals', 'journal_number'),
+                'date'           => $pos->date,
+                'description'    => "POS {$pos->transaction_number}",
+                'status'         => 'posted',
+                'reference'      => $pos->transaction_number,
+                'reference_type' => 'pos_transaction',
+                'created_by'     => $userId,
+                'posted_by'      => $userId,
+                'posted_at'      => now(),
+            ]);
+
+            JournalLine::create([
+                'journal_id'  => $journal->id,
+                'account_id'  => self::getDefaultAccount($cashCode),
+                'description' => "POS {$pos->transaction_number} - {$pos->paymentMethodLabel()}",
+                'debit'       => $pos->total,
+                'credit'      => 0,
+                'order'       => 1,
+            ]);
+
+            $order       = 2;
+            $proportion  = $pos->subtotal > 0 ? ($pos->discount_amount / (float) $pos->subtotal) : 0;
+
+            foreach ($pos->lines as $line) {
+                $lineNet        = round((float) $line->subtotal * (1 - $proportion), 2);
+                $salesAccountId = $line->item?->sales_account_id ?? self::getDefaultAccount('4100');
+
+                JournalLine::create([
+                    'journal_id'  => $journal->id,
+                    'account_id'  => $salesAccountId,
+                    'description' => $line->description,
+                    'debit'       => 0,
+                    'credit'      => $lineNet,
+                    'order'       => $order++,
+                ]);
+
+                if ($line->item && $line->item->type === 'product'
+                    && $line->item->cogs_account_id && $line->item->inventory_account_id) {
+                    $cogsAmount = round((float) $line->qty * (float) $line->item->buy_price, 2);
+                    if ($cogsAmount > 0) {
+                        JournalLine::create([
+                            'journal_id'  => $journal->id,
+                            'account_id'  => $line->item->cogs_account_id,
+                            'description' => "HPP - {$line->description}",
+                            'debit'       => $cogsAmount,
+                            'credit'      => 0,
+                            'order'       => $order++,
+                        ]);
+                        JournalLine::create([
+                            'journal_id'  => $journal->id,
+                            'account_id'  => $line->item->inventory_account_id,
+                            'description' => "Persediaan - {$line->description}",
+                            'debit'       => 0,
+                            'credit'      => $cogsAmount,
+                            'order'       => $order++,
+                        ]);
+                    }
+                }
+            }
+
+            if ($pos->tax_amount > 0) {
+                JournalLine::create([
+                    'journal_id'  => $journal->id,
+                    'account_id'  => self::getDefaultAccount('2200'),
+                    'description' => 'PPN Keluaran POS',
+                    'debit'       => 0,
+                    'credit'      => $pos->tax_amount,
+                    'order'       => $order,
+                ]);
+            }
 
             return $journal;
         });
