@@ -65,6 +65,7 @@
                 <div class="sb-sidenav-menu">
                     <div class="nav">
 
+                        @if(auth()->user()->isAdmin())
                         {{-- Utama --}}
                         <div class="sb-sidenav-menu-heading">Utama</div>
                         <a class="nav-link @active('dashboard')" href="{{ route('dashboard') }}">
@@ -95,10 +96,12 @@
                             Metode Pembayaran
                         </a>
 
+                        @endif {{-- end admin-only block sebelum POS --}}
+
                         {{-- Transaksi --}}
                         <div class="sb-sidenav-menu-heading">Transaksi</div>
 
-                        {{-- POS --}}
+                        {{-- POS — kasir & admin --}}
                         <a class="nav-link @active('pos.index')" href="{{ route('pos.index') }}">
                             <div class="sb-nav-link-icon"><i class="fas fa-cash-register"></i></div>
                             Point of Sales
@@ -108,6 +111,7 @@
                             Riwayat POS
                         </a>
 
+                        @if(auth()->user()->isAdmin())
                         {{-- Jurnal --}}
                         <a class="nav-link collapsed @active('journals.*')" href="#collapseJurnal"
                            data-bs-toggle="collapse" aria-expanded="{{ request()->routeIs('journals.*') ? 'true' : 'false' }}">
@@ -221,12 +225,22 @@
                             <div class="sb-nav-link-icon"><i class="fas fa-cog"></i></div>
                             Pengaturan Perusahaan
                         </a>
+                        <a class="nav-link @active('users.*')" href="{{ route('users.index') }}">
+                            <div class="sb-nav-link-icon"><i class="fas fa-users-cog"></i></div>
+                            Manajemen Pengguna
+                        </a>
+                        @endif {{-- end admin-only --}}
 
                     </div>
                 </div>
                 <div class="sb-sidenav-footer">
                     <div class="small">Login sebagai:</div>
                     {{ auth()->user()->name }}
+                    <div class="mt-1">
+                        <span class="badge {{ auth()->user()->isAdmin() ? 'bg-primary' : 'bg-success' }}">
+                            {{ auth()->user()->isAdmin() ? 'Admin' : 'Kasir' }}
+                        </span>
+                    </div>
                 </div>
             </nav>
         </div>
