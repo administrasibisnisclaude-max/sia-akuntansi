@@ -12,10 +12,6 @@ class PosController extends Controller
     public function index()
     {
         $items = Item::where('is_active', true)
-            ->withSum(['movements as stock_in'  => fn($m) => $m->where('type', 'in')], 'qty')
-            ->withSum(['movements as stock_adj' => fn($m) => $m->where('type', 'adjustment')], 'qty')
-            ->withSum(['movements as stock_out' => fn($m) => $m->where('type', 'out')], 'qty')
-            ->select('id', 'item_code', 'name', 'sell_price', 'unit', 'type')
             ->orderBy('name')
             ->get()
             ->map(fn($item) => [
@@ -25,9 +21,7 @@ class PosController extends Controller
                 'sell_price' => (float) $item->sell_price,
                 'unit'       => $item->unit,
                 'type'       => $item->type,
-                'stock'      => $item->type === 'product'
-                    ? (float) (($item->stock_in ?? 0) + ($item->stock_adj ?? 0) - ($item->stock_out ?? 0))
-                    : null,
+                'stock'      => $item->type === 'product' ? $item->currentStock() : null,
             ]);
 
         return view('pos.index', compact('items'));
@@ -44,10 +38,6 @@ class PosController extends Controller
             ->where(fn($query) => $query
                 ->where('name', 'like', "%{$q}%")
                 ->orWhere('item_code', 'like', "%{$q}%"))
-            ->withSum(['movements as stock_in'  => fn($m) => $m->where('type', 'in')], 'qty')
-            ->withSum(['movements as stock_adj' => fn($m) => $m->where('type', 'adjustment')], 'qty')
-            ->withSum(['movements as stock_out' => fn($m) => $m->where('type', 'out')], 'qty')
-            ->select('id', 'item_code', 'name', 'sell_price', 'unit', 'type')
             ->orderBy('name')
             ->limit(30)
             ->get()
@@ -58,9 +48,7 @@ class PosController extends Controller
                 'sell_price' => (float) $item->sell_price,
                 'unit'       => $item->unit,
                 'type'       => $item->type,
-                'stock'      => $item->type === 'product'
-                    ? (float) (($item->stock_in ?? 0) + ($item->stock_adj ?? 0) - ($item->stock_out ?? 0))
-                    : null,
+                'stock'      => $item->type === 'product' ? $item->currentStock() : null,
             ]);
 
         return response()->json($items);

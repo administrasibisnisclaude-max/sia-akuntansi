@@ -147,7 +147,7 @@ h1.mt-4, ol.breadcrumb { display: none !important; }
     <div class="pos-grid-area">
         <div class="product-grid" id="productGrid">
             @forelse($items as $item)
-            <div class="product-card {{ $item['type'] === 'product' && $item['stock'] <= 0 ? 'out-of-stock' : '' }}"
+            <div class="product-card {{ $item['type'] === 'product' && !is_null($item['stock']) && $item['stock'] <= 0 ? 'out-of-stock' : '' }}"
                  data-id="{{ $item['id'] }}"
                  data-name="{{ $item['name'] }}"
                  data-code="{{ $item['item_code'] }}"
@@ -160,7 +160,7 @@ h1.mt-4, ol.breadcrumb { display: none !important; }
                 <div class="pc-name">{{ $item['name'] }}</div>
                 <div class="pc-price">Rp {{ number_format($item['sell_price'], 0, ',', '.') }}</div>
                 @if($item['type'] === 'product')
-                <div class="pc-stock {{ ($item['stock'] ?? 0) <= 5 ? 'low' : '' }}">
+                <div class="pc-stock {{ ($item['stock'] ?? 0) > 0 && ($item['stock'] ?? 0) <= 5 ? 'low' : '' }}">
                     Stok: {{ number_format($item['stock'] ?? 0, 0, ',', '.') }} {{ $item['unit'] }}
                 </div>
                 @else
