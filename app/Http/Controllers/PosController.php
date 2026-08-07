@@ -11,7 +11,26 @@ class PosController extends Controller
 {
     public function index()
     {
-        return view('pos.index');
+        $items = Item::where('is_active', true)
+            ->withSum(['movements as stock_in'  => fn($m) => $m->where('type', 'in')], 'qty')
+            ->withSum(['movements as stock_adj' => fn($m) => $m->where('type', 'adjustment')], 'qty')
+            ->withSum(['movements as stock_out' => fn($m) => $m->where('type', 'out')], 'qty')
+            ->select('id', 'item_code', 'name', 'sell_price', 'unit', 'type')
+            ->orderBy('name')
+            ->get()
+            ->map(fn($item) => [
+                'id'         => $item->id,
+                'item_code'  => $item->item_code,
+                'name'       => $item->name,
+                'sell_price' => (float) $item->sell_price,
+                'unit'       => $item->unit,
+                'type'       => $item->type,
+                'stock'      => $item->type === 'product'
+                    ? (float) ($item->stock_in + $item->stock_adj - $item->stock_out)
+                    : null,
+            ]);
+
+        return view('pos.index', compact('items'));
     }
 
     public function searchItems(Request $request)
@@ -30,7 +49,7 @@ class PosController extends Controller
             ->withSum(['movements as stock_out' => fn($m) => $m->where('type', 'out')], 'qty')
             ->select('id', 'item_code', 'name', 'sell_price', 'unit', 'type')
             ->orderBy('name')
-            ->limit(12)
+            ->limit(30)
             ->get()
             ->map(fn($item) => [
                 'id'         => $item->id,
