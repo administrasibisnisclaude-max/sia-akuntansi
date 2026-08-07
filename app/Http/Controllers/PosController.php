@@ -26,7 +26,7 @@ class PosController extends Controller
                 'unit'       => $item->unit,
                 'type'       => $item->type,
                 'stock'      => $item->type === 'product'
-                    ? (float) ($item->stock_in + $item->stock_adj - $item->stock_out)
+                    ? (float) (($item->stock_in ?? 0) + ($item->stock_adj ?? 0) - ($item->stock_out ?? 0))
                     : null,
             ]);
 
@@ -59,7 +59,7 @@ class PosController extends Controller
                 'unit'       => $item->unit,
                 'type'       => $item->type,
                 'stock'      => $item->type === 'product'
-                    ? (float) ($item->stock_in + $item->stock_adj - $item->stock_out)
+                    ? (float) (($item->stock_in ?? 0) + ($item->stock_adj ?? 0) - ($item->stock_out ?? 0))
                     : null,
             ]);
 
