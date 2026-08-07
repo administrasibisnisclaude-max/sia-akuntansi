@@ -18,17 +18,20 @@ class SettingController extends Controller
     public function update(Request $request)
     {
         $request->validate([
-            'company_name'    => 'required|string|max:100',
-            'company_email'   => 'nullable|email|max:100',
-            'company_phone'   => 'nullable|string|max:30',
-            'company_address' => 'nullable|string|max:255',
-            'company_city'    => 'nullable|string|max:100',
-            'company_website' => 'nullable|string|max:100',
-            'company_npwp'    => 'nullable|string|max:30',
-            'company_tagline' => 'nullable|string|max:150',
-            'invoice_footer'  => 'nullable|string|max:255',
-            'invoice_terms'   => 'nullable|string|max:500',
-            'company_logo'    => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
+            'company_name'           => 'required|string|max:100',
+            'company_email'          => 'nullable|email|max:100',
+            'company_phone'          => 'nullable|string|max:30',
+            'company_address'        => 'nullable|string|max:255',
+            'company_city'           => 'nullable|string|max:100',
+            'company_website'        => 'nullable|string|max:100',
+            'company_npwp'           => 'nullable|string|max:30',
+            'company_tagline'        => 'nullable|string|max:150',
+            'invoice_footer'         => 'nullable|string|max:255',
+            'invoice_terms'          => 'nullable|string|max:500',
+            'company_logo'           => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
+            'printer_paper_width'    => 'nullable|in:58,80',
+            'printer_bt_service_uuid'=> 'nullable|string|max:60',
+            'printer_bt_char_uuid'   => 'nullable|string|max:60',
         ]);
 
         // Handle logo upload
@@ -45,6 +48,7 @@ class SettingController extends Controller
             'company_name', 'company_tagline', 'company_address', 'company_city',
             'company_phone', 'company_email', 'company_website', 'company_npwp',
             'invoice_footer', 'invoice_terms',
+            'printer_paper_width', 'printer_bt_service_uuid', 'printer_bt_char_uuid',
         ];
 
         foreach ($fields as $field) {

@@ -28,6 +28,15 @@ h1.mt-4, ol.breadcrumb { display: none !important; }
     transition: background .15s, color .15s;
 }
 .pos-navbtn:hover { background: #0d6efd; color: #fff; }
+.pos-btbtn {
+    background: #fff; color: #6f42c1; border: 1px solid #6f42c1;
+    border-radius: 10px; padding: 8px 14px; font-weight: 600;
+    font-size: .9rem; cursor: pointer; text-decoration: none;
+    display: flex; align-items: center; gap: 7px; white-space: nowrap;
+    transition: background .15s, color .15s;
+}
+.pos-btbtn:hover { background: #6f42c1; color: #fff; }
+.pos-btbtn.connected { background: #6f42c1; color: #fff; }
 .cart-fab {
     position: relative;
     background: #198754; color: #fff; border: none;
@@ -149,6 +158,10 @@ h1.mt-4, ol.breadcrumb { display: none !important; }
             <i class="fas fa-history"></i>
             Riwayat Transaksi
         </a>
+        <button id="btConnectBtn" class="pos-btbtn" onclick="btConnect()">
+            <i class="fas fa-bluetooth"></i>
+            <span id="btBtnLabel">Hubungkan Printer</span>
+        </button>
         <button class="cart-fab" onclick="openCart()">
             <i class="fas fa-shopping-cart"></i>
             Keranjang
@@ -305,14 +318,18 @@ h1.mt-4, ol.breadcrumb { display: none !important; }
                 <div class="text-muted mb-1">Total: <strong id="successTotal"></strong></div>
                 <div class="text-muted mb-3" id="successChange"></div>
             </div>
-            <div class="modal-footer justify-content-center gap-2">
+            <div class="modal-footer justify-content-center gap-2 flex-wrap">
                 <button class="btn btn-outline-secondary" onclick="printReceipt()">
                     <i class="fas fa-print me-1"></i>Cetak Struk
+                </button>
+                <button id="btPrintModalBtn" class="btn btn-outline-secondary" onclick="btPrintFromModal()" style="color:#6f42c1; border-color:#6f42c1;">
+                    <i class="fas fa-bluetooth me-1"></i>Cetak Bluetooth
                 </button>
                 <button class="btn btn-success" onclick="newTransaction()">
                     <i class="fas fa-plus me-1"></i>Transaksi Baru
                 </button>
             </div>
+            <div id="btModalMsg" class="text-center pb-2 small text-muted" style="display:none;"></div>
         </div>
     </div>
 </div>
@@ -321,9 +338,188 @@ h1.mt-4, ol.breadcrumb { display: none !important; }
 @push('scripts')
 <script>
 // ===== STATE =====
-let cart      = [];
-let payMethod = 'tunai';
-let lastTxId  = null;
+let cart           = [];
+let payMethod      = 'tunai';
+let lastTxId       = null;
+let lastTxSnapshot = null;
+
+// ===== PRINTER CONFIG (from server settings) =====
+const PRINTER_CFG = {
+    paperWidth: '{{ $company["printer_paper_width"] ?? "80" }}',
+    serviceUuid: '{{ addslashes($company["printer_bt_service_uuid"] ?? "") }}',
+    charUuid:    '{{ addslashes($company["printer_bt_char_uuid"] ?? "") }}',
+};
+const COMPANY = {
+    name:    '{{ addslashes($company["company_name"] ?? "SIA Akuntansi") }}',
+    address: '{{ addslashes($company["company_address"] ?? "") }}',
+    phone:   '{{ addslashes($company["company_phone"] ?? "") }}',
+};
+
+// ===== BLUETOOTH STATE =====
+let _btDevice = null;
+let _btChar   = null;
+
+const BT_SERVICES = [
+    'e7810a71-73ae-499d-8c15-faa9aef0c3f2',
+    '0000ff00-0000-1000-8000-00805f9b34fb',
+    '49535343-fe7d-4ae5-8fa9-9fafd205e455',
+    '000018f0-0000-1000-8000-00805f9b34fb',
+];
+const BT_CHARS = {
+    'e7810a71-73ae-499d-8c15-faa9aef0c3f2': 'bef8d6c9-9c21-4c9e-b632-bd58c1009f9f',
+    '0000ff00-0000-1000-8000-00805f9b34fb': '0000ff02-0000-1000-8000-00805f9b34fb',
+    '49535343-fe7d-4ae5-8fa9-9fafd205e455': '49535343-1e4d-4bd9-ba61-23c647249616',
+};
+
+async function getWriteChar(server, svcId, charId) {
+    try {
+        const svc = await server.getPrimaryService(svcId);
+        if (charId) { try { return await svc.getCharacteristic(charId); } catch {} }
+        const fallback = BT_CHARS[svcId];
+        if (fallback) { try { return await svc.getCharacteristic(fallback); } catch {} }
+        const all = await svc.getCharacteristics();
+        return all.find(c => c.properties.write || c.properties.writeWithoutResponse) || null;
+    } catch { return null; }
+}
+
+async function sendBytes(char, bytes) {
+    const CHUNK = 200;
+    const useWR = char.properties.writeWithoutResponse;
+    for (let i = 0; i < bytes.length; i += CHUNK) {
+        const chunk = bytes.slice(i, i + CHUNK);
+        if (useWR) await char.writeValueWithoutResponse(chunk);
+        else       await char.writeValue(chunk);
+        await new Promise(r => setTimeout(r, 40));
+    }
+}
+
+async function btConnect() {
+    const btn = document.getElementById('btConnectBtn');
+    const lbl = document.getElementById('btBtnLabel');
+    if (!navigator.bluetooth) {
+        alert('Web Bluetooth tidak didukung. Gunakan Chrome atau Edge.');
+        return;
+    }
+    if (_btDevice && _btDevice.gatt.connected) {
+        _btDevice.gatt.disconnect();
+        return;
+    }
+    const cfgSvc  = PRINTER_CFG.serviceUuid || '';
+    const cfgChar = PRINTER_CFG.charUuid || '';
+    const svcList = [...new Set([...(cfgSvc ? [cfgSvc] : []), ...BT_SERVICES])];
+
+    lbl.textContent = 'Mencari...';
+    btn.disabled = true;
+    try {
+        _btDevice = await navigator.bluetooth.requestDevice({ acceptAllDevices: true, optionalServices: svcList });
+        _btDevice.addEventListener('gattserverdisconnected', () => {
+            _btChar = null; _btDevice = null;
+            btn.className = 'pos-btbtn'; lbl.textContent = 'Hubungkan Printer'; btn.disabled = false;
+        });
+        const server = await _btDevice.gatt.connect();
+        for (const svc of svcList) {
+            _btChar = await getWriteChar(server, svc, cfgChar);
+            if (_btChar) break;
+        }
+        if (!_btChar) { _btDevice.gatt.disconnect(); throw new Error('Karakteristik printer tidak ditemukan.'); }
+
+        const name = _btDevice.name || 'Printer BT';
+        localStorage.setItem('bt_printer_name', name);
+        btn.className = 'pos-btbtn connected'; lbl.textContent = name; btn.disabled = false;
+    } catch (e) {
+        _btDevice = null; _btChar = null;
+        btn.className = 'pos-btbtn'; btn.disabled = false;
+        lbl.textContent = 'Hubungkan Printer';
+        if (e.name !== 'NotFoundError') alert('Gagal terhubung: ' + e.message);
+    }
+}
+
+// ===== ESC/POS BUILDER =====
+function buildEscPos(tx, company, paperWidth) {
+    const CHARS = paperWidth === '58' ? 32 : 48;
+    const ESC = 0x1B, GS = 0x1D, LF = 0x0A;
+    const bytes = [];
+    const enc   = new TextEncoder();
+
+    const push    = (...b) => bytes.push(...b);
+    const text    = (s)    => enc.encode(s).forEach(b => bytes.push(b));
+    const nl      = (n=1)  => { for (let i=0;i<n;i++) push(LF); };
+    const line    = (s)    => { text(s); push(LF); };
+    const align   = (a)    => push(ESC, 0x61, a==='c'?1:a==='r'?2:0);
+    const bold    = (on)   => push(ESC, 0x45, on?1:0);
+    const dbl     = (on)   => push(GS, 0x21, on?0x11:0x00);
+    const divider = ()     => line('-'.repeat(CHARS));
+    const fmtN    = (n)    => Math.round(n).toLocaleString('id-ID');
+    const fmtRp   = (n)    => 'Rp ' + fmtN(n);
+    const row     = (l, r) => {
+        const sp = CHARS - l.length - r.length;
+        line(sp > 0 ? l + ' '.repeat(sp) + r : l.slice(0, CHARS-r.length-1) + ' ' + r);
+    };
+
+    push(ESC, 0x40); // init
+    align('c'); bold(true); dbl(true);
+    line(company.name); dbl(false); bold(false);
+    if (company.address) line(company.address);
+    if (company.phone)   line('Telp: ' + company.phone);
+    nl(); divider();
+
+    align('l');
+    row('No:', tx.number);
+    row('Tanggal:', tx.date);
+    row('Kasir:', tx.cashier);
+    row('Pembayaran:', tx.payment);
+    divider();
+
+    tx.lines.forEach(l => {
+        bold(true); line(l.desc); bold(false);
+        const detail = '  ' + fmtN(l.qty) + ' x ' + fmtN(l.unit_price)
+                     + (l.discount_pct > 0 ? ' (Disc ' + l.discount_pct + '%)' : '');
+        row(detail, fmtN(l.subtotal));
+    });
+    divider();
+    row('Subtotal', fmtRp(tx.subtotal));
+    if (tx.discount > 0) row('Diskon', '- ' + fmtRp(tx.discount));
+    if (tx.tax > 0)      row('Pajak (' + tx.tax_pct + '%)', fmtRp(tx.tax));
+    divider();
+    bold(true); row('TOTAL', fmtRp(tx.total)); bold(false);
+    if (tx.payment_method === 'tunai') {
+        row('Dibayar', fmtRp(tx.paid));
+        bold(true); row('Kembalian', fmtRp(tx.change)); bold(false);
+    } else { row('Dibayar', tx.payment); }
+    if (tx.notes) { divider(); line('Catatan: ' + tx.notes); }
+    divider();
+    align('c');
+    line('Terima kasih atas kunjungan Anda!');
+    line('Barang yang sudah dibeli tidak dapat dikembalikan.');
+    nl(4);
+    push(GS, 0x56, 0x41, 0x10); // cut
+
+    return new Uint8Array(bytes);
+}
+
+async function btPrintFromModal() {
+    const btn = document.getElementById('btPrintModalBtn');
+    const msg = document.getElementById('btModalMsg');
+    if (!lastTxSnapshot) return;
+
+    if (!_btChar) {
+        msg.style.display = 'block'; msg.style.color = '#dc3545';
+        msg.textContent = 'Printer belum terhubung. Klik "Hubungkan Printer" di topbar terlebih dahulu.';
+        return;
+    }
+
+    btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Mencetak...';
+    msg.style.display = 'block'; msg.style.color = '#555'; msg.textContent = '';
+
+    try {
+        const bytes = buildEscPos(lastTxSnapshot, COMPANY, PRINTER_CFG.paperWidth);
+        await sendBytes(_btChar, bytes);
+        msg.style.color = '#198754'; msg.textContent = '✓ Struk berhasil dicetak via Bluetooth.';
+    } catch (e) {
+        msg.style.color = '#dc3545'; msg.textContent = '✗ Gagal mencetak: ' + e.message;
+    }
+    btn.disabled = false; btn.innerHTML = '<i class="fas fa-bluetooth me-1"></i>Cetak Bluetooth';
+}
 
 // ===== SEARCH FILTER =====
 document.getElementById('searchInput').addEventListener('input', function() {
@@ -548,11 +744,29 @@ function processPayment() {
     .then(res => {
         if (res.success) {
             lastTxId = res.id;
+            const payLabels = { tunai:'Tunai', qris:'QRIS', transfer:'Transfer Bank', ewallet:'E-Wallet' };
+            const now = new Date();
+            const dateFmt = now.toLocaleDateString('id-ID',{day:'2-digit',month:'2-digit',year:'numeric'})
+                          + ' ' + now.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+            lastTxSnapshot = {
+                number: res.number, date: dateFmt,
+                cashier: '{{ auth()->user()->name }}',
+                payment: payLabels[payMethod] || payMethod,
+                payment_method: payMethod,
+                lines: cart.map(c => ({
+                    desc: c.description, qty: c.qty, unit_price: c.unit_price,
+                    discount_pct: c.discount_percent, subtotal: c.subtotal,
+                })),
+                subtotal, discount: discAmt, tax_pct: taxPct, tax: taxAmt,
+                total, paid, change, notes: document.getElementById('notesInput').value,
+            };
             closeCart();
             document.getElementById('successNumber').textContent = res.number;
             document.getElementById('successTotal').textContent  = formatRp(total);
             document.getElementById('successChange').textContent = payMethod === 'tunai'
                 ? `Kembalian: ${formatRp(change)}` : `Dibayar via ${payMethod.toUpperCase()}`;
+            const btMsg = document.getElementById('btModalMsg');
+            btMsg.style.display = 'none'; btMsg.textContent = '';
             new bootstrap.Modal(document.getElementById('successModal')).show();
         } else {
             alert('Terjadi kesalahan. Silakan coba lagi.');

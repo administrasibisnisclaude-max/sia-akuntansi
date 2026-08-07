@@ -126,6 +126,49 @@
                 </div>
             </div>
 
+            {{-- Printer Thermal Bluetooth --}}
+            <div class="card mb-4">
+                <div class="card-header"><i class="fas fa-print me-2"></i>Printer Thermal Bluetooth</div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Lebar Kertas</label>
+                        <div class="d-flex gap-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="printer_paper_width" value="58" id="pw58"
+                                    {{ ($settings['printer_paper_width'] ?? '80') == '58' ? 'checked' : '' }}>
+                                <label class="form-check-label" for="pw58">58 mm (32 karakter)</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="printer_paper_width" value="80" id="pw80"
+                                    {{ ($settings['printer_paper_width'] ?? '80') == '80' ? 'checked' : '' }}>
+                                <label class="form-check-label" for="pw80">80 mm (48 karakter)</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">UUID Layanan BLE <span class="text-muted small">(opsional)</span></label>
+                        <input type="text" name="printer_bt_service_uuid" class="form-control form-control-sm font-monospace"
+                               placeholder="e7810a71-73ae-499d-8c15-faa9aef0c3f2"
+                               value="{{ old('printer_bt_service_uuid', $settings['printer_bt_service_uuid'] ?? '') }}">
+                        <div class="form-text">Kosongkan untuk deteksi UUID umum otomatis.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">UUID Karakteristik BLE <span class="text-muted small">(opsional)</span></label>
+                        <input type="text" name="printer_bt_char_uuid" class="form-control form-control-sm font-monospace"
+                               placeholder="bef8d6c9-9c21-4c9e-b632-bd58c1009f9f"
+                               value="{{ old('printer_bt_char_uuid', $settings['printer_bt_char_uuid'] ?? '') }}">
+                    </div>
+                    <div id="btTestResult" class="small mb-2 text-muted"></div>
+                    <button type="button" class="btn btn-sm btn-outline-secondary w-100" onclick="testBtConnection()">
+                        <i class="fas fa-bluetooth me-1"></i>Test Koneksi Printer
+                    </button>
+                    <div class="alert alert-info py-2 px-3 small mt-3 mb-0">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Memerlukan <strong>Chrome / Edge</strong> terbaru dan koneksi <strong>HTTPS</strong> atau <strong>localhost</strong>. Tidak didukung Firefox dan Safari.
+                    </div>
+                </div>
+            </div>
+
             {{-- Save Button --}}
             <div class="card mb-4">
                 <div class="card-body">
@@ -139,3 +182,39 @@
     </div>
 </form>
 @endsection
+
+@push('scripts')
+<script>
+const BT_COMMON_SERVICES = [
+    'e7810a71-73ae-499d-8c15-faa9aef0c3f2',
+    '0000ff00-0000-1000-8000-00805f9b34fb',
+    '49535343-fe7d-4ae5-8fa9-9fafd205e455',
+    '000018f0-0000-1000-8000-00805f9b34fb',
+];
+
+async function testBtConnection() {
+    const el = document.getElementById('btTestResult');
+    if (!navigator.bluetooth) {
+        el.className = 'small mb-2 text-danger';
+        el.textContent = '✗ Web Bluetooth tidak didukung di browser ini. Gunakan Chrome atau Edge.';
+        return;
+    }
+    const svcUuid = document.querySelector('[name=printer_bt_service_uuid]').value.trim();
+    const charUuid = document.querySelector('[name=printer_bt_char_uuid]').value.trim();
+    const optionalServices = [...new Set([...BT_COMMON_SERVICES, ...(svcUuid ? [svcUuid] : [])])];
+
+    el.className = 'small mb-2 text-muted';
+    el.textContent = 'Mencari printer...';
+
+    try {
+        const device = await navigator.bluetooth.requestDevice({ acceptAllDevices: true, optionalServices });
+        el.textContent = `Terhubung: ${device.name || 'Printer BT'} — Koneksi berhasil!`;
+        el.className = 'small mb-2 text-success fw-semibold';
+        device.gatt.disconnect();
+    } catch (e) {
+        el.className = 'small mb-2 text-' + (e.name === 'NotFoundError' ? 'warning' : 'danger');
+        el.textContent = e.name === 'NotFoundError' ? 'Pencarian dibatalkan.' : '✗ ' + e.message;
+    }
+}
+</script>
+@endpush
