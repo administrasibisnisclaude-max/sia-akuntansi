@@ -19,8 +19,17 @@ h1.mt-4, ol.breadcrumb { display: none !important; }
     padding: 10px 16px; display: flex; align-items: center; gap: 12px;
 }
 .pos-topbar input { max-width: 320px; }
+.pos-navbtn {
+    margin-left: auto;
+    background: #fff; color: #0d6efd; border: 1px solid #0d6efd;
+    border-radius: 10px; padding: 8px 16px; font-weight: 600;
+    font-size: .9rem; cursor: pointer; text-decoration: none;
+    display: flex; align-items: center; gap: 7px; white-space: nowrap;
+    transition: background .15s, color .15s;
+}
+.pos-navbtn:hover { background: #0d6efd; color: #fff; }
 .cart-fab {
-    position: relative; margin-left: auto;
+    position: relative;
     background: #198754; color: #fff; border: none;
     border-radius: 10px; padding: 8px 20px; font-weight: 700;
     font-size: .95rem; cursor: pointer; display: flex; align-items: center; gap: 8px;
@@ -136,6 +145,10 @@ h1.mt-4, ol.breadcrumb { display: none !important; }
         <i class="fas fa-cash-register text-success fs-5"></i>
         <input type="text" id="searchInput" class="form-control form-control-sm"
                placeholder="Cari produk (nama / kode)..." autocomplete="off">
+        <a href="{{ route('pos.history') }}" class="pos-navbtn">
+            <i class="fas fa-history"></i>
+            Riwayat Transaksi
+        </a>
         <button class="cart-fab" onclick="openCart()">
             <i class="fas fa-shopping-cart"></i>
             Keranjang
