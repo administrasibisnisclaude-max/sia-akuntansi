@@ -149,13 +149,18 @@ class PosController extends Controller
 
     public function history(Request $request)
     {
-        $transactions = PosTransaction::with('cashier')
+        $user = auth()->user();
+
+        $query = PosTransaction::with('cashier')
             ->when($request->date, fn($q) => $q->whereDate('date', $request->date))
-            ->latest()
-            ->paginate(20);
+            ->when($user->isKasir(), fn($q) => $q->where('cashier_id', $user->id))
+            ->latest();
+
+        $transactions = $query->paginate(20);
 
         $todayTotal = PosTransaction::whereDate('date', today())
             ->where('status', 'completed')
+            ->when($user->isKasir(), fn($q) => $q->where('cashier_id', $user->id))
             ->sum('total');
 
         return view('pos.history', compact('transactions', 'todayTotal'));
