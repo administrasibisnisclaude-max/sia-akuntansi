@@ -107,8 +107,8 @@
                             Point of Sales
                         </a>
                         <a class="nav-link @active('pos.history')" href="{{ route('pos.history') }}">
-                            <div class="sb-nav-link-icon"><i class="fas fa-receipt"></i></div>
-                            Riwayat POS
+                            <div class="sb-nav-link-icon"><i class="fas fa-history"></i></div>
+                            Riwayat Transaksi
                         </a>
 
                         @if(auth()->user()->isAdmin())
